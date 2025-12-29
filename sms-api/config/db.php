@@ -8,7 +8,7 @@ class Database
     {
         if (self::$conn === null) {
             $host = 'localhost';
-            $db   = 'sms_db'; // Change db name to match your local instance
+            $db   = 'sms_db';
             $user = 'root';
             $pass = '';
 
@@ -30,13 +30,13 @@ class Database
 
     private static function ensureSchema(PDO $pdo): void
     {
-        // Create in FK-safe order: grades -> classes -> users/students/subjects -> scores
         $statements = [
 
             // grades
             "CREATE TABLE IF NOT EXISTS grades (
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                grade_no INT NOT NULL
+                grade_no INT NOT NULL,
+                UNIQUE KEY uniq_grade_no (grade_no)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
             // classes
@@ -44,18 +44,19 @@ class Database
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 grade_id INT UNSIGNED NOT NULL,
                 class VARCHAR(50) NOT NULL,
+                UNIQUE KEY uniq_class (class),
                 INDEX (grade_id),
                 CONSTRAINT fk_classes_grade
                     FOREIGN KEY (grade_id) REFERENCES grades(id)
                     ON DELETE RESTRICT ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 
-            // users (class_id is optional)
+            // users
             "CREATE TABLE IF NOT EXISTS users (
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 role VARCHAR(50) NOT NULL,
                 email VARCHAR(255) NOT NULL,
-                password_hash VARCHAR(255) NULL,
+                password_hash VARCHAR(255) NOT NULL,
                 class_id INT UNSIGNED NULL,
                 UNIQUE KEY uniq_users_email (email),
                 INDEX (class_id),
@@ -93,11 +94,15 @@ class Database
                 subject_id INT UNSIGNED NOT NULL,
                 student_id INT UNSIGNED NOT NULL,
                 school_year INT NOT NULL,
-                first_term FLOAT NULL,
-                second_term FLOAT NULL,
-                third_term FLOAT NULL,
+
+                first_term  DECIMAL(5,2) NULL,
+                second_term DECIMAL(5,2) NULL,
+                third_term  DECIMAL(5,2) NULL,
+
+                UNIQUE KEY uniq_scores (student_id, subject_id, school_year),
                 INDEX (subject_id),
                 INDEX (student_id),
+
                 CONSTRAINT fk_scores_subject
                     FOREIGN KEY (subject_id) REFERENCES subjects(id)
                     ON DELETE CASCADE ON UPDATE CASCADE,
