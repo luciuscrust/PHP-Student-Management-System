@@ -1,7 +1,10 @@
 <?php
 
 require_once __DIR__ . '/controllers/ApiController.php';
-require_once __DIR__ . '/controllers/SmsContoller.php';
+
+require_once __DIR__ . '/controllers/GradeContoller.php';
+require_once __DIR__ . '/controllers/ClassContoller.php';
+
 require_once __DIR__ . '/controllers/AuthContoller.php';
 
 require_once __DIR__ . '/helpers/Auth.php';
@@ -11,7 +14,9 @@ use helpers\Auth;
 use helpers\JsonHelpers;
 
 $apiController  = new ApiController();
-$smsController  = new SmsController();
+$gradeController  = new GradeController();
+$classController  = new ClassController();
+
 $authController = new AuthController();
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -51,15 +56,50 @@ if (($uri === '/auth/me' || $uri === '/auth/me/') && $method === 'GET') {
 // --------------------
 Auth::requireLogin();
 
-if ($uri === '/get-all-grades' && $method === 'GET') {
+// Grade Related Routes
+// GET /grades
+if ($uri === '/grades' && $method === 'GET') {
     Auth::requireRole('admin');
-    $smsController->getGrades();
+    $gradeController->getGrades();
     exit;
 }
 
+// GET /grades/show?id=1
+if ($uri === '/grades/show' && $method === 'GET') {
+    Auth::requireRole('admin');
+    $gradeController->getGradeById();
+    exit;
+}
+
+// POST /grades
+// body: { "grade_no": 7 }
+if ($uri === '/grades' && $method === 'POST') {
+    Auth::requireRole('admin');
+    $gradeController->createGrade();
+    exit;
+}
+
+// PUT /grades?id=1
+// body: { "grade_no": 8 }
+if ($uri === '/grades' && $method === 'PUT') {
+    Auth::requireRole('admin');
+    $gradeController->updateGrade();
+    exit;
+}
+
+// DELETE /grades?id=1
+if ($uri === '/grades' && $method === 'DELETE') {
+    Auth::requireRole('admin');
+    $gradeController->deleteGrade();
+    exit;
+}
+
+
+
+// Class Related Routes
 if ($uri === '/get-classes' && $method === 'GET') {
     Auth::requireRole('admin');
-    $smsController->getClassesByGrade();
+    $classController->getClassesByGrade();
     exit;
 }
 
