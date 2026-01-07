@@ -63,6 +63,24 @@ if ($uri === '/get-classes' && $method === 'GET') {
     exit;
 }
 
+// if ($uri === '/get-classes' && $method === 'GET') {
+//     Auth::requireRole('admin');
+//     $smsController->getClassesByGrade();
+//     exit;
+// }
+
+// if ($uri === '/get-classes' && $method === 'GET') {
+//     Auth::requireRole('admin');
+//     $smsController->getClassesByGrade();
+//     exit;
+// }
+
+// if ($uri === '/get-classes' && $method === 'GET') {
+//     Auth::requireRole('admin');
+//     $smsController->getClassesByGrade();
+//     exit;
+// }
+
 
 
 // 404
