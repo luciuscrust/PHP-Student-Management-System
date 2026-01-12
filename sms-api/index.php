@@ -3,7 +3,7 @@
 require_once __DIR__ . '/controllers/ApiController.php';
 
 require_once __DIR__ . '/controllers/GradeContoller.php';
-require_once __DIR__ . '/controllers/ClassContoller.php';
+require_once __DIR__ . '/controllers/ClassController.php';
 require_once __DIR__ . '/controllers/StudentReportController.php';
 require_once __DIR__ . '/controllers/ReportController.php';
 
@@ -19,7 +19,7 @@ $apiController  = new ApiController();
 
 $gradeController  = new GradeController();
 $classController  = new ClassController();
-$ReportController = new ReportController();
+$reportController = new ReportController();
 $studentReportController = new StudentReportController();
 
 $authController = new AuthController();
