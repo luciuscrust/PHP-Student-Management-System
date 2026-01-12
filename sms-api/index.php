@@ -56,6 +56,7 @@ if (($uri === '/auth/me' || $uri === '/auth/me/') && $method === 'GET') {
 // --------------------
 Auth::requireLogin();
 
+
 // Grade Related Routes
 // GET /grades
 if ($uri === '/grades' && $method === 'GET') {
@@ -64,45 +65,33 @@ if ($uri === '/grades' && $method === 'GET') {
     exit;
 }
 
-// GET /grades/show?id=1
-if ($uri === '/grades/show' && $method === 'GET') {
-    Auth::requireRole('admin');
-    $gradeController->getGradeById();
-    exit;
-}
-
-// POST /grades
-// body: { "grade_no": 7 }
-if ($uri === '/grades' && $method === 'POST') {
-    Auth::requireRole('admin');
-    $gradeController->createGrade();
-    exit;
-}
-
-// PUT /grades?id=1
-// body: { "grade_no": 8 }
-if ($uri === '/grades' && $method === 'PUT') {
-    Auth::requireRole('admin');
-    $gradeController->updateGrade();
-    exit;
-}
-
-// DELETE /grades?id=1
-if ($uri === '/grades' && $method === 'DELETE') {
-    Auth::requireRole('admin');
-    $gradeController->deleteGrade();
-    exit;
-}
-
-
 
 // Class Related Routes
+// GET /get-classes?grade_id=id
 if ($uri === '/get-classes' && $method === 'GET') {
     Auth::requireRole('admin');
     $classController->getClassesByGrade();
     exit;
 }
 
+
+// Student and Score Related Routes
+// Admin report: class_id is provided
+// GET /class-report?class_id=?&year=?
+// If no year is specified, the most recent scoring year for the class will be used
+if ($uri === '/class-report' && $method === 'GET') {
+    Auth::requireRole('admin');
+    $reportController->getClassReportAdmin();
+    exit;
+}
+
+// Teacher report: class_id comes from session
+// GET /class-report?year=?
+if ($uri === '/teacher/class-report' && $method === 'GET') {
+    Auth::requireRole('teacher');
+    $reportController->getClassReportTeacher();
+    exit;
+}
 
 
 // 404
