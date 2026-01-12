@@ -4,6 +4,8 @@ require_once __DIR__ . '/controllers/ApiController.php';
 
 require_once __DIR__ . '/controllers/GradeContoller.php';
 require_once __DIR__ . '/controllers/ClassContoller.php';
+require_once __DIR__ . '/controllers/StudentReportController.php';
+require_once __DIR__ . '/controllers/ReportController.php';
 
 require_once __DIR__ . '/controllers/AuthContoller.php';
 
@@ -14,8 +16,11 @@ use helpers\Auth;
 use helpers\JsonHelpers;
 
 $apiController  = new ApiController();
+
 $gradeController  = new GradeController();
 $classController  = new ClassController();
+$ReportController = new ReportController();
+$studentReportController = new StudentReportController();
 
 $authController = new AuthController();
 
@@ -57,7 +62,9 @@ if (($uri === '/auth/me' || $uri === '/auth/me/') && $method === 'GET') {
 Auth::requireLogin();
 
 
+
 // Grade Related Routes
+
 // GET /grades
 if ($uri === '/grades' && $method === 'GET') {
     Auth::requireRole('admin');
@@ -67,6 +74,7 @@ if ($uri === '/grades' && $method === 'GET') {
 
 
 // Class Related Routes
+
 // GET /get-classes?grade_id=id
 if ($uri === '/get-classes' && $method === 'GET') {
     Auth::requireRole('admin');
@@ -76,24 +84,40 @@ if ($uri === '/get-classes' && $method === 'GET') {
 
 
 // Student and Score Related Routes
-// Admin report: class_id is provided
-// GET /class-report?class_id=?&year=?
 // If no year is specified, the most recent scoring year for the class will be used
+
+// Admin: single student report
+// GET /student-report?student_id=?&year=?
+if ($uri === '/student-report' && $method === 'GET') {
+    Auth::requireRole('admin');
+    $studentReportController->getStudentReportAdmin();
+    exit;
+}
+
+// Teacher: single student report (restricted)
+// GET /teacher/student-report?student_id=?&year=?
+if ($uri === '/teacher/student-report' && $method === 'GET') {
+    Auth::requireRole('teacher');
+    $studentReportController->getStudentReportTeacher();
+    exit;
+}
+
+// Admin Class report: class_id is provided
+// GET /class-report?class_id=?&year=?
 if ($uri === '/class-report' && $method === 'GET') {
     Auth::requireRole('admin');
     $reportController->getClassReportAdmin();
     exit;
 }
 
-// Teacher report: class_id comes from session
+// Teacher Class report: class_id comes from session
 // GET /class-report?year=?
-// class_id comes from the session in this case, so the teacher isn't able to change the class they're viewing
-// If no year is specified, the most recent scoring year for the class will be used
 if ($uri === '/teacher/class-report' && $method === 'GET') {
     Auth::requireRole('teacher');
     $reportController->getClassReportTeacher();
     exit;
 }
+
 
 
 // 404
