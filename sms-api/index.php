@@ -87,6 +87,8 @@ if ($uri === '/class-report' && $method === 'GET') {
 
 // Teacher report: class_id comes from session
 // GET /class-report?year=?
+// class_id comes from the session in this case, so the teacher isn't able to change the class they're viewing
+// If no year is specified, the most recent scoring year for the class will be used
 if ($uri === '/teacher/class-report' && $method === 'GET') {
     Auth::requireRole('teacher');
     $reportController->getClassReportTeacher();
