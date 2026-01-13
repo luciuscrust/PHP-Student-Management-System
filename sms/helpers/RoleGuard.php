@@ -7,10 +7,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 /**
- * Guard a page by role.
+ * This is a healper function that guards a page by role.
  *
  * @param string|array $allowedRoles Role or roles allowed to view the page
- * @param string $redirect Where to send unauthorized users
+ * @param string $redirect Where to send unauthorized users (if empty, they will be redirected to their dashboard through the login page)
  */
 
 function requireRole(string|array $allowedRoles, string $redirect = "http://localhost/PHP-Student-Management-System/sms/index.php"): void
