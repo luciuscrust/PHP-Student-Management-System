@@ -1,1 +1,0 @@
-# PHP Student Management System
