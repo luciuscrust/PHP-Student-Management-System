@@ -64,7 +64,7 @@ $csrf = $_SESSION['csrf_token'];
 				minlength="8"
 				aria-describedby="pwHelp" />
 			<p id="pwHelp" class="text-xs text-gray-500 mb-4">
-				Password must be at least 8 characters, include letters, numbers and a symbol.
+				Forgot your password?<br />Talk to the System Administrator to get it reset!
 			</p>
 
 			<div id="errBox" class="hidden mb-4 p-3 rounded text-sm text-red-700 bg-red-100"></div>

@@ -45,9 +45,6 @@ if (!$isTeacher) {
                             Admin view.
                             <?php if ($classId): ?>
                                 Loaded for class_id: <span class="font-medium"><?= htmlspecialchars((string)$classId) ?></span>
-                            <?php else: ?>
-                                Provide <span class="font-medium">?class_id=</span> in the URL to load a class report.
-                                Example: <span class="font-mono">class_students.php?class_id=3</span>
                             <?php endif; ?>
                         </p>
                     <?php endif; ?>
@@ -206,7 +203,7 @@ if (!$isTeacher) {
 
                 const path = resolveReportPath();
                 if (!path) {
-                    showError('Missing class_id. Add ?class_id=3 to the URL.');
+                    showError('Error: Missing class_id. Add "?class_id=CLASS_ID" to the URL.');
                     return;
                 }
 
