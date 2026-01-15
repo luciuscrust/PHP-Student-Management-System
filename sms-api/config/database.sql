@@ -4,7 +4,7 @@
 USE sms_db;
 
 -- =======================
--- THIS IS HERE FOR INSERTING SEED DATA (CAN BE COPIED AND PASTED)
+-- THIS IS HERE FOR INSERTING SEED DATA (SHOULD BE COPIED AND PASTED)
 -- =======================
 
 -- 6 grades (1–6)
