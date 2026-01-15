@@ -1,0 +1,256 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: lightgray;
+}
+.header {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.header-content h1 {
+  font-size: 24px;
+  font-weight: bold;
+}
+.user-links span {
+  font-size: 14px;
+  color:gray;
+  margin-right: 12px;
+}
+
+.user-links a {
+  font-size: 14px;
+  color: blue;
+  text-decoration: none;
+  margin-left: 8px;
+}
+
+.user-links a:hover {
+  text-decoration: underline;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.filters {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.filters h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.filters label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.filters select,
+.filters input,
+.filters button {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid lightgray;
+  border-radius: 6px;
+  font-size: 14px;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.filters button {
+  background-color: rgb(18, 143, 185);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.filters button:hover {
+  background-color: darkblue;
+}
+
+.info-text p {
+  font-size: 14px;
+  color: gray;
+}
+
+.message {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.message.error {
+  background-color: lightpink;
+  color: red;
+}
+
+.message.success {
+  background-color: lightgreen;
+  color: green;
+}
+
+.students-table {
+  display: none;
+  background-color: white;
+  border-radius: 8px;
+}
+
+.table-header {
+  padding: 16px;
+  border-bottom: 1px solid lightgray;
+}
+
+.table-header h2 {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.table-header p {
+  font-size: 14px;
+  color: gray;
+  margin-top: 4px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid lightgray;
+}
+
+th {
+  color: gray;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.student-row:hover {
+  background-color: whitesmoke;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.btn-indigo {
+  background-color: rgb(18, 143, 185);
+  color: white;
+}
+
+.btn-indigo:hover {
+  background-color: darkblue;
+}
+
+.btn-green {
+  background-color: rgb(94, 220, 94);
+  color: white;
+}
+
+.btn-green:hover {
+  background-color: darkgreen;
+}
+
+.btn-gray {
+  background-color: lightgray;
+  color: black;
+}
+
+.btn-gray:hover {
+  background-color: gray;
+}
+
+.scores-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.scores-table th,
+.scores-table td {
+  border: 1px solid lightgray;
+  padding: 6px 8px;
+}
+
+.scores-table th {
+  background-color: whitesmoke;
+  font-weight: 500;
+  text-align: left;
+}
+
+.center {
+  text-align: center;
+}
+
+.calc-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.term-select {
+  padding: 4px 6px;
+  border: 1px solid lightgray;
+  border-radius: 4px;
+}
+
+.term-result {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.result-box {
+  padding: 8px;
+  border: 1px solid lightgray;
+  border-radius: 6px;
+  background-color: white;
+}
+
+.result-box .average {
+  margin-top: 4px;
+  font-weight: bold;
+}
