@@ -72,6 +72,7 @@ class GradeSubjectAverageController
 
     /**
      * ADMIN: GET /grade-subject-averages?subjects=Math,Science&year=2025&term=overall
+     * If 'subjects' and 'year' are not specified it will use all the subject and the most recent year
      */
 
     public function getGradeSubjectAveragesAdmin(): void
