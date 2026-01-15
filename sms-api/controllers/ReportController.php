@@ -56,7 +56,7 @@ class ReportController
     /**
      * TEACHER: GET /teacher/class-report?year=2025
      * If year is not preovided, it will default to the most resent scoring year for the specified class
-     * class_id comes from session (so teachers can’t change it)
+     * class_id comes from session (so teachers can’t change it to smthing else)
      */
 
     public function getClassReportTeacher(): void
