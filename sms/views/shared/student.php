@@ -74,13 +74,6 @@ if (!$isTeacher) {
 
             <div id="errBox" class="hidden p-3 rounded text-sm text-red-700 bg-red-100"></div>
             <div id="okBox" class="hidden p-3 rounded text-sm text-green-700 bg-green-100"></div>
-
-            <?php if (!$isTeacher && !$classId): ?>
-                <div class="p-3 rounded text-sm bg-yellow-50 text-yellow-900 border border-yellow-100">
-                    This admin page needs a class id. Add it to the URL (example):
-                    <span class="font-mono">?class_id=3</span>
-                </div>
-            <?php endif; ?>
         </div>
 
         <div id="studentsContainer" class="bg-white p-6 rounded shadow space-y-4">
