@@ -76,6 +76,8 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 			const statusPill = document.getElementById('statusPill');
 			const selectedBox = document.getElementById('selectedBox');
 
+			let avgByGradeNo = {};
+
 			function show(el) {
 				el.classList.remove('hidden');
 			}
@@ -116,6 +118,86 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 				}
 			}
 
+			function escapeHtml(str) {
+				return String(str ?? '')
+					.replaceAll('&', '&amp;')
+					.replaceAll('<', '&lt;')
+					.replaceAll('>', '&gt;')
+					.replaceAll('"', '&quot;')
+					.replaceAll("'", '&#039;');
+			}
+
+			async function apiGet(path) {
+				const res = await fetch(`${API_BASE}${path}`, {
+					method: 'GET',
+					headers: {
+						'Accept': 'application/json'
+					},
+					credentials: 'include'
+				});
+
+				let data = null;
+				try {
+					data = await res.json();
+				} catch (_) {}
+
+				if (!res.ok) {
+					throw new Error(data?.message || data?.error || `Request failed (HTTP ${res.status}).`);
+				}
+
+				return data;
+			}
+
+			/**
+			 * Tries to load grade subject averages.
+			 * Expected response (recommended):
+			 * {
+			 *   year: 2025,
+			 *   term: "overall",
+			 *   subjects: ["Math", ...],
+			 *   grades: [
+			 *     { grade_no: 1, subjects: [{subject_name:"Math", avg: 61.2, count: 25}, ...] },
+			 *     ...
+			 *   ]
+			 * }
+			 *
+			 * If the route doesn't exist yet, we fail softly (grades still render).
+			 */
+
+			async function loadGradeAverages() {
+				try {
+					// If you named it differently, change this path:
+					const data = await apiGet('/grade-subject-averages'); // defaults: latest year, overall, core subjects
+
+					const grades = data?.grades;
+					if (!Array.isArray(grades)) {
+						// not fatal, just ignore
+						avgByGradeNo = {};
+						return;
+					}
+
+					const map = {};
+					for (const g of grades) {
+						const gradeNo = Number(g?.grade_no);
+						const subjects = Array.isArray(g?.subjects) ? g.subjects : [];
+						if (!Number.isFinite(gradeNo)) continue;
+
+						// Normalize subject entries
+						map[gradeNo] = subjects.map(s => ({
+							subject_name: s.subject_name ?? s.name ?? '',
+							avg: (s.avg !== null && s.avg !== undefined) ? Number(s.avg) : null,
+							count: (s.count !== null && s.count !== undefined) ? Number(s.count) : null
+						}));
+					}
+
+					avgByGradeNo = map;
+
+				} catch (e) {
+					// Soft fail: averages just won't show
+					avgByGradeNo = {};
+				}
+			}
+
 			function renderGrades(grades) {
 				listEl.innerHTML = '';
 
@@ -131,28 +213,48 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 				for (const g of grades) {
 					const li = document.createElement('li');
 
+					// Build averages block for this grade
+					const subjectAvgs = avgByGradeNo?.[g.grade_no] || [];
+					const avgHtml = subjectAvgs.length ?
+						`
+						<div class="mt-2 flex flex-wrap gap-2">
+							${subjectAvgs.slice(0, 8).map(s => {
+								const label = escapeHtml(s.subject_name || 'Subject');
+								const avg = (s.avg === null || Number.isNaN(s.avg)) ? '-' : Number(s.avg).toFixed(2);
+								const count = (s.count === null || Number.isNaN(s.count)) ? '' : ` • n=${escapeHtml(String(s.count))}`;
+								return `
+									<span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+										${label}: <span class="font-medium">${escapeHtml(String(avg))}</span>${count}
+									</span>
+								`;
+							}).join('')}
+						</div>
+					  ` :
+						`<div class="mt-2 text-xs text-gray-500">No averages available.</div>`;
+
 					li.innerHTML = `
-						<button
-							type="button"
-							class="w-full text-left p-4 hover:bg-gray-50 flex items-center justify-between gap-4"
-							data-grade-id="${String(g.id)}"
-							data-grade-name="${String(g.name ?? '')}">
-							<div>
-								<div class="font-medium text-gray-900">${escapeHtml(g.name ?? 'Unnamed Grade')}</div>
-								<div class="text-xs text-gray-500">ID: ${escapeHtml(String(g.id))}</div>
-							</div>
-							<span class="text-sm text-indigo-600">Select →</span>
-						</button>
-					`;
+					<button
+						type="button"
+						class="w-full text-left p-4 hover:bg-gray-50 flex items-start justify-between gap-4"
+						data-grade-id="${String(g.id)}"
+						data-grade-name="${String(g.name ?? '')}">
+						<div class="min-w-0">
+							<div class="font-medium text-gray-900">${escapeHtml(g.name ?? 'Unnamed Grade')}</div>
+							<div class="text-xs text-gray-500">ID: ${escapeHtml(String(g.id))}</div>
+							${avgHtml}
+						</div>
+						<span class="text-sm text-indigo-600 whitespace-nowrap">Select →</span>
+					</button>
+				`;
 
 					li.querySelector('button').addEventListener('click', () => {
 						const gradeId = g.id;
 						const gradeName = g.name;
 
 						selectedBox.innerHTML = `
-							<span class="font-medium">Selected:</span>
-							${escapeHtml(gradeName)} (ID: ${escapeHtml(String(gradeId))})
-						`;
+						<span class="font-medium">Selected:</span>
+						${escapeHtml(gradeName)} (ID: ${escapeHtml(String(gradeId))})
+					`;
 						show(selectedBox);
 
 						try {
@@ -173,39 +275,20 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 				}
 			}
 
-			function escapeHtml(str) {
-				return String(str)
-					.replaceAll('&', '&amp;')
-					.replaceAll('<', '&lt;')
-					.replaceAll('>', '&gt;')
-					.replaceAll('"', '&quot;')
-					.replaceAll("'", '&#039;');
-			}
-
-			async function loadGrades() {
+			async function loadGradesAndAverages() {
 				clearError();
 				setLoading(true);
 
 				try {
-					const res = await fetch(`${API_BASE}/grades`, {
-						method: 'GET',
-						headers: {
-							'Accept': 'application/json'
-						},
-						credentials: 'include'
-					});
+					setStatus('Loading grades…');
 
-					let data = null;
-					try {
-						data = await res.json();
-					} catch (_) {}
+					// Run both requests in parallel
+					const [gradesRes] = await Promise.all([
+						apiGet('/grades'),
+						loadGradeAverages()
+					]);
 
-					if (!res.ok) {
-						throw new Error(data?.message || `Failed to load grades (HTTP ${res.status}).`);
-					}
-
-					const grades = data?.grades;
-
+					const grades = gradesRes?.grades;
 					if (!Array.isArray(grades)) {
 						throw new Error("Unexpected API response: missing grades array.");
 					}
@@ -213,7 +296,7 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 					const normalized = grades.map(g => ({
 						id: g.id,
 						name: `Grade ${g.grade_no}`,
-						grade_no: g.grade_no
+						grade_no: Number(g.grade_no)
 					}));
 
 					renderGrades(normalized);
@@ -227,11 +310,11 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 				}
 			}
 
-			refreshBtn.addEventListener('click', loadGrades);
-
-			loadGrades();
+			refreshBtn.addEventListener('click', loadGradesAndAverages);
+			loadGradesAndAverages();
 		})();
 	</script>
+
 
 </body>
 

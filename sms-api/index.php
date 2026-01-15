@@ -6,6 +6,7 @@ require_once __DIR__ . '/controllers/GradeContoller.php';
 require_once __DIR__ . '/controllers/ClassController.php';
 require_once __DIR__ . '/controllers/StudentReportController.php';
 require_once __DIR__ . '/controllers/ReportController.php';
+require_once __DIR__ . '/controllers/GradeSubjectAverageController.php';
 
 require_once __DIR__ . '/controllers/AuthContoller.php';
 
@@ -21,6 +22,7 @@ $gradeController  = new GradeController();
 $classController  = new ClassController();
 $reportController = new ReportController();
 $studentReportController = new StudentReportController();
+$gradeAvgController = new GradeSubjectAverageController();
 
 $authController = new AuthController();
 
@@ -62,13 +64,26 @@ if (($uri === '/auth/me' || $uri === '/auth/me/') && $method === 'GET') {
 Auth::requireLogin();
 
 
-
 // Grade Related Routes
 
 // GET /grades
 if ($uri === '/grades' && $method === 'GET') {
     Auth::requireRole('admin');
     $gradeController->getGrades();
+    exit;
+}
+
+// GET /grade-subject-averages
+if ($uri === '/grade-subject-averages' && $method === 'GET') {
+    Auth::requireRole('admin');
+    $gradeAvgController->getGradeSubjectAveragesAdmin();
+    exit;
+}
+
+// GET /teacher/grade-subject-averages
+if ($uri === '/teacher/grade-subject-averages' && $method === 'GET') {
+    Auth::requireRole('teacher');
+    $gradeAvgController->getGradeSubjectAveragesTeacher();
     exit;
 }
 
@@ -117,7 +132,6 @@ if ($uri === '/teacher/class-report' && $method === 'GET') {
     $reportController->getClassReportTeacher();
     exit;
 }
-
 
 
 // 404

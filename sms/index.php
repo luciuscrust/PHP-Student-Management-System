@@ -10,7 +10,7 @@ if (!empty($_SESSION['user'])) {
 	}
 
 	if ($role === 'teacher') {
-		header('Location: ./views/teacher/dashboard.php');
+		header('Location: ./views/shared/student.php');
 		exit;
 	}
 }
