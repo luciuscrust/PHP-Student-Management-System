@@ -148,30 +148,12 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 				return data;
 			}
 
-			/**
-			 * Tries to load grade subject averages.
-			 * Expected response (recommended):
-			 * {
-			 *   year: 2025,
-			 *   term: "overall",
-			 *   subjects: ["Math", ...],
-			 *   grades: [
-			 *     { grade_no: 1, subjects: [{subject_name:"Math", avg: 61.2, count: 25}, ...] },
-			 *     ...
-			 *   ]
-			 * }
-			 *
-			 * If the route doesn't exist yet, we fail softly (grades still render).
-			 */
-
 			async function loadGradeAverages() {
 				try {
-					// If you named it differently, change this path:
-					const data = await apiGet('/grade-subject-averages'); // defaults: latest year, overall, core subjects
+					const data = await apiGet('/grade-subject-averages');
 
 					const grades = data?.grades;
 					if (!Array.isArray(grades)) {
-						// not fatal, just ignore
 						avgByGradeNo = {};
 						return;
 					}
@@ -182,7 +164,6 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 						const subjects = Array.isArray(g?.subjects) ? g.subjects : [];
 						if (!Number.isFinite(gradeNo)) continue;
 
-						// Normalize subject entries
 						map[gradeNo] = subjects.map(s => ({
 							subject_name: s.subject_name ?? s.name ?? '',
 							avg: (s.avg !== null && s.avg !== undefined) ? Number(s.avg) : null,
@@ -193,7 +174,6 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 					avgByGradeNo = map;
 
 				} catch (e) {
-					// Soft fail: averages just won't show
 					avgByGradeNo = {};
 				}
 			}
@@ -213,7 +193,6 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 				for (const g of grades) {
 					const li = document.createElement('li');
 
-					// Build averages block for this grade
 					const subjectAvgs = avgByGradeNo?.[g.grade_no] || [];
 					const avgHtml = subjectAvgs.length ?
 						`
