@@ -2,13 +2,13 @@
 session_start();
 
 require_once __DIR__ . '../../../helpers/RoleGuard.php';
-
 requireRole('admin');
 
-$user = $_SESSION['user'];
+$user = $_SESSION['user'] ?? ['email' => ''];
+
 ?>
 <!doctype html>
-<html>
+<html lang="en">
 
 <head>
 	<meta charset="utf-8" />
@@ -18,12 +18,220 @@ $user = $_SESSION['user'];
 </head>
 
 <body class="min-h-screen bg-gray-100 p-6">
-	<div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
-		<h1 class="text-xl font-semibold">Welcome, Admin: <?= htmlspecialchars($user['email']) ?></h1>
-		<p class="mt-4">
-			<a href="../auth/logout.php" class="text-indigo-600 hover:underline">Logout</a>
-		</p>
+	<div class="max-w-4xl mx-auto space-y-6">
+
+		<div class="bg-white p-6 rounded shadow">
+			<div class="flex items-start justify-between gap-4">
+				<div>
+					<h1 class="text-xl font-semibold">Welcome, Admin: <?= htmlspecialchars($user['email'] ?? '') ?></h1>
+					<p class="text-sm text-gray-600 mt-1">Select a grade to continue.</p>
+				</div>
+
+				<a href="../auth/logout.php" class="text-indigo-600 hover:underline">Logout</a>
+			</div>
+		</div>
+
+		<div class="bg-white p-6 rounded shadow">
+			<div class="flex items-center justify-between gap-4 mb-4">
+				<h2 class="text-lg font-semibold">Grades</h2>
+
+				<div class="flex items-center gap-2">
+					<span id="statusPill" class="hidden text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">Loading…</span>
+					<button
+						id="refreshBtn"
+						type="button"
+						class="text-sm px-3 py-2 rounded border hover:bg-gray-50">
+						Refresh
+					</button>
+				</div>
+			</div>
+
+			<div id="errBox" class="hidden mb-4 p-3 rounded text-sm text-red-700 bg-red-100"></div>
+
+			<div id="selectedBox" class="hidden mb-4 p-3 rounded text-sm bg-indigo-50 text-indigo-900 border border-indigo-100"></div>
+
+			<div id="loading" class="space-y-3">
+				<div class="h-12 bg-gray-100 rounded animate-pulse"></div>
+				<div class="h-12 bg-gray-100 rounded animate-pulse"></div>
+				<div class="h-12 bg-gray-100 rounded animate-pulse"></div>
+			</div>
+
+			<ul id="gradesList" class="hidden divide-y"></ul>
+
+			<p id="emptyState" class="hidden text-sm text-gray-600">
+				No grades were returned from the API.
+			</p>
+		</div>
 	</div>
+
+	<script>
+		(() => {
+			const API_BASE = 'http://localhost/PHP-Student-Management-System/sms-api';
+
+			const listEl = document.getElementById('gradesList');
+			const errBox = document.getElementById('errBox');
+			const loading = document.getElementById('loading');
+			const emptyState = document.getElementById('emptyState');
+			const refreshBtn = document.getElementById('refreshBtn');
+			const statusPill = document.getElementById('statusPill');
+			const selectedBox = document.getElementById('selectedBox');
+
+			function show(el) {
+				el.classList.remove('hidden');
+			}
+
+			function hide(el) {
+				el.classList.add('hidden');
+			}
+
+			function setStatus(text) {
+				if (!text) {
+					hide(statusPill);
+					statusPill.textContent = '';
+					return;
+				}
+				statusPill.textContent = text;
+				show(statusPill);
+			}
+
+			function showError(msg) {
+				errBox.textContent = msg || 'Something went wrong.';
+				show(errBox);
+			}
+
+			function clearError() {
+				errBox.textContent = '';
+				hide(errBox);
+			}
+
+			function setLoading(isLoading) {
+				if (isLoading) {
+					setStatus('Loading…');
+					show(loading);
+					hide(listEl);
+					hide(emptyState);
+				} else {
+					setStatus('');
+					hide(loading);
+				}
+			}
+
+			function renderGrades(grades) {
+				listEl.innerHTML = '';
+
+				if (!Array.isArray(grades) || grades.length === 0) {
+					hide(listEl);
+					show(emptyState);
+					return;
+				}
+
+				hide(emptyState);
+				show(listEl);
+
+				for (const g of grades) {
+					const li = document.createElement('li');
+
+					li.innerHTML = `
+						<button
+							type="button"
+							class="w-full text-left p-4 hover:bg-gray-50 flex items-center justify-between gap-4"
+							data-grade-id="${String(g.id)}"
+							data-grade-name="${String(g.name ?? '')}">
+							<div>
+								<div class="font-medium text-gray-900">${escapeHtml(g.name ?? 'Unnamed Grade')}</div>
+								<div class="text-xs text-gray-500">ID: ${escapeHtml(String(g.id))}</div>
+							</div>
+							<span class="text-sm text-indigo-600">Select →</span>
+						</button>
+					`;
+
+					li.querySelector('button').addEventListener('click', () => {
+						const gradeId = g.id;
+						const gradeName = g.name;
+
+						selectedBox.innerHTML = `
+							<span class="font-medium">Selected:</span>
+							${escapeHtml(gradeName)} (ID: ${escapeHtml(String(gradeId))})
+						`;
+						show(selectedBox);
+
+						try {
+							localStorage.setItem('selected_grade_id', String(gradeId));
+							localStorage.setItem('selected_grade_name', String(gradeName));
+						} catch (_) {}
+
+						// Send the user to the classes page where they can view the classes in that grade
+						// window.location.href = `./class.php?id=${encodeURIComponent(gradeId)}`;
+						// At this point the class.php page will make a call to the api's "/get-classes" route
+						// The param will be "grade_id=GRADE_ID"
+						// Full request will look as follows:
+
+						// GET http://localhost/PHP-Student-Management-System/sms-api/get-classes?grade_id=GRADE_ID
+					});
+
+					listEl.appendChild(li);
+				}
+			}
+
+			function escapeHtml(str) {
+				return String(str)
+					.replaceAll('&', '&amp;')
+					.replaceAll('<', '&lt;')
+					.replaceAll('>', '&gt;')
+					.replaceAll('"', '&quot;')
+					.replaceAll("'", '&#039;');
+			}
+
+			async function loadGrades() {
+				clearError();
+				setLoading(true);
+
+				try {
+					const res = await fetch(`${API_BASE}/grades`, {
+						method: 'GET',
+						headers: {
+							'Accept': 'application/json'
+						},
+						credentials: 'include'
+					});
+
+					let data = null;
+					try {
+						data = await res.json();
+					} catch (_) {}
+
+					if (!res.ok) {
+						throw new Error(data?.message || `Failed to load grades (HTTP ${res.status}).`);
+					}
+
+					const grades = data?.grades;
+
+					if (!Array.isArray(grades)) {
+						throw new Error("Unexpected API response: missing grades array.");
+					}
+
+					const normalized = grades.map(g => ({
+						id: g.id,
+						name: `Grade ${g.grade_no}`,
+						grade_no: g.grade_no
+					}));
+
+					renderGrades(normalized);
+
+				} catch (err) {
+					showError(err?.message || 'Could not load grades.');
+					hide(listEl);
+					hide(emptyState);
+				} finally {
+					setLoading(false);
+				}
+			}
+
+			refreshBtn.addEventListener('click', loadGrades);
+
+			loadGrades();
+		})();
+	</script>
 
 </body>
 
