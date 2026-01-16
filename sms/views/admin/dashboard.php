@@ -23,7 +23,7 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 		<div class="bg-white p-6 rounded shadow">
 			<div class="flex items-start justify-between gap-4">
 				<div>
-					<h1 class="text-xl font-semibold">Welcome, Admin: <?= htmlspecialchars($user['email'] ?? '') ?></h1>
+					<h1 class="text-xl font-semibold">Welcome, Admin</h1>
 					<p class="text-sm text-gray-600 mt-1">Select a grade to continue.</p>
 				</div>
 
@@ -48,7 +48,6 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 
 			<div id="errBox" class="hidden mb-4 p-3 rounded text-sm text-red-700 bg-red-100"></div>
 
-			<div id="selectedBox" class="hidden mb-4 p-3 rounded text-sm bg-indigo-50 text-indigo-900 border border-indigo-100"></div>
 
 			<div id="loading" class="space-y-3">
 				<div class="h-12 bg-gray-100 rounded animate-pulse"></div>
@@ -74,7 +73,6 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 			const emptyState = document.getElementById('emptyState');
 			const refreshBtn = document.getElementById('refreshBtn');
 			const statusPill = document.getElementById('statusPill');
-			const selectedBox = document.getElementById('selectedBox');
 
 			let avgByGradeNo = {};
 
@@ -219,10 +217,8 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 						data-grade-name="${String(g.name ?? '')}">
 						<div class="min-w-0">
 							<div class="font-medium text-gray-900">${escapeHtml(g.name ?? 'Unnamed Grade')}</div>
-							<div class="text-xs text-gray-500">ID: ${escapeHtml(String(g.id))}</div>
 							${avgHtml}
 						</div>
-						<span class="text-sm text-indigo-600 whitespace-nowrap">Select →</span>
 					</button>
 				`;
 
@@ -230,24 +226,14 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 						const gradeId = g.id;
 						const gradeName = g.name;
 
-						selectedBox.innerHTML = `
-						<span class="font-medium">Selected:</span>
-						${escapeHtml(gradeName)} (ID: ${escapeHtml(String(gradeId))})
-					`;
-						show(selectedBox);
 
 						try {
 							localStorage.setItem('selected_grade_id', String(gradeId));
 							localStorage.setItem('selected_grade_name', String(gradeName));
 						} catch (_) {}
 
-						// Send the user to the classes page where they can view the classes in that grade
-						// window.location.href = `./class.php?id=${encodeURIComponent(gradeId)}`;
-						// At this point the class.php page will make a call to the api's "/get-classes" route
-						// The param will be "grade_id=GRADE_ID"
-						// Full request will look as follows:
+						window.location.href = `./class.php?grade_id=${encodeURIComponent(gradeId)}`;
 
-						// GET http://localhost/PHP-Student-Management-System/sms-api/get-classes?grade_id=GRADE_ID
 					});
 
 					listEl.appendChild(li);
@@ -261,7 +247,6 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 				try {
 					setStatus('Loading grades…');
 
-					// Run both requests in parallel
 					const [gradesRes] = await Promise.all([
 						apiGet('/grades'),
 						loadGradeAverages()

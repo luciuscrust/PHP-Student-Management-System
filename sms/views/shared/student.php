@@ -34,20 +34,12 @@ if (!$isTeacher) {
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <h1 class="text-xl font-semibold">
-                        <?= ucfirst(htmlspecialchars($role)) ?> - Class Report
-                        <span class="text-sm font-normal text-gray-500"></span>
+                        <span id="classNameBadge" class="ml-2 hidden text-s font-medium px-2 py-1 rounded bg-gray-100 text-gray-700"></span>
+                        - Class Report
                     </h1>
 
-                    <?php if ($isTeacher): ?>
-                        <p class="text-sm text-gray-600 mt-1">Showing your assigned class report.</p>
-                    <?php else: ?>
-                        <p class="text-sm text-gray-600 mt-1">
-                            Admin view.
-                            <?php if ($classId): ?>
-                                Loaded for class_id: <span class="font-medium"><?= htmlspecialchars((string)$classId) ?></span>
-                            <?php endif; ?>
-                        </p>
-                    <?php endif; ?>
+
+
                 </div>
 
                 <a href="../auth/logout.php" class="text-indigo-600 hover:underline">Logout</a>
@@ -88,13 +80,13 @@ if (!$isTeacher) {
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full border">
+                <table class="text-center min-w-full border">
                     <thead class="bg-gray-50">
                         <tr class="text-left text-sm">
-                            <th class="p-3 border">ID</th>
-                            <th class="p-3 border">First Name</th>
-                            <th class="p-3 border">Last Name</th>
-                            <th class="p-3 border">Actions</th>
+                            <th class="text-center py-3 border">ID</th>
+                            <th class="text-center py-3 border">First Name</th>
+                            <th class="text-center py-3 border">Last Name</th>
+                            <th class="text-center py-3 border">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="studentsTableBody" class="text-sm"></tbody>
@@ -122,6 +114,17 @@ if (!$isTeacher) {
 
             const show = (el) => el.classList.remove('hidden');
             const hide = (el) => el.classList.add('hidden');
+
+            const classNameBadge = document.getElementById('classNameBadge');
+
+            try {
+                const className = localStorage.getItem('selected_class_name');
+                if (className && classNameBadge) {
+                    classNameBadge.textContent = className;
+                    classNameBadge.classList.remove('hidden');
+                }
+            } catch (_) {}
+
 
             function setStatus(text) {
                 if (!text) {
@@ -250,10 +253,10 @@ if (!$isTeacher) {
                     const row = document.createElement('tr');
                     row.className = 'border-t';
                     row.innerHTML = `
-						<td class="p-3 border">${escapeHtml(s.id)}</td>
-						<td class="p-3 border">${escapeHtml(s.first_name)}</td>
-						<td class="p-3 border">${escapeHtml(s.last_name)}</td>
-						<td class="p-3 border">
+						<td class="py-3 border">${escapeHtml(s.id)}</td>
+						<td class="py-3 border">${escapeHtml(s.first_name)}</td>
+						<td class="py-3 border">${escapeHtml(s.last_name)}</td>
+						<td class="py-3 flex justify-center">
 							<button data-action="toggleScores" data-index="${i}"
 								class="px-3 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
 								View Scores
