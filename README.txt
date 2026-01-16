@@ -1,7 +1,9 @@
 Student Management System (SMS) — XAMPP Setup & Run Guide
 ========================================================
 
-This document explains how to set up and run our groups Student Management System (SMS) application using XAMPP (Apache + MySQL) on Windows.
+This document explains how to set up and run our
+groups Student Management System (SMS) application
+using XAMPP (Apache + MySQL) on Windows.
 
 --------------------------------------------------------
 1) Requirements
@@ -154,4 +156,4 @@ Recommended workflow:
 2) Login via frontend or Postman.
 3) Test /auth/me to confirm session.
 
-End of README.txt
+[ END ]
