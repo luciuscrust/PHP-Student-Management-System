@@ -191,10 +191,8 @@ if (!$isTeacher) {
             }
 
             function resolveReportPath() {
-                // Teacher: class comes from session
                 if (IS_TEACHER) return '/teacher/class-report';
 
-                // Admin: must provide class_id
                 if (!CLASS_ID) return null;
                 return `/class-report?class_id=${encodeURIComponent(CLASS_ID)}`;
             }

@@ -36,6 +36,7 @@ $apiBase = 'http://localhost/PHP-Student-Management-System/sms-api';
                     <p class="text-sm text-gray-600 mt-1">
                         Admin View.
                     </p>
+
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -170,6 +171,7 @@ $apiBase = 'http://localhost/PHP-Student-Management-System/sms-api';
 							data-class-name="${escapeHtml(String(className))}">
 							<div>
 								<div class="font-medium text-gray-900">${escapeHtml(String(className))}</div>
+                                <div class="mt-2 text-xs text-gray-500">ID: ${escapeHtml(String(classId))}</div>
 							</div>
 						</button>
 					`;
