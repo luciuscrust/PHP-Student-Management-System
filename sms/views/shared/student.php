@@ -37,11 +37,7 @@ if (!$isTeacher) {
                         <span id="classNameBadge" class="ml-2 hidden text-s font-medium px-2 py-1 rounded bg-gray-100 text-gray-700"></span>
                         - Class Report
                     </h1>
-
-
-
                 </div>
-
                 <a href="../auth/logout.php" class="text-indigo-600 hover:underline">Logout</a>
             </div>
         </div>
@@ -253,13 +249,23 @@ if (!$isTeacher) {
                     row.innerHTML = `
 						<td class="py-3 border">${escapeHtml(s.id)}</td>
 						<td class="py-3 border">${escapeHtml(s.first_name)}</td>
-						<td class="py-3 border">${escapeHtml(s.last_name)}</td>
-						<td class="py-3 flex justify-center">
-							<button data-action="toggleScores" data-index="${i}"
-								class="px-3 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
-								View Scores
-							</button>
-						</td>
+						<td class="py-3 border">${escapeHtml(s.last_name)}</td>			
+                        <td class="py-3 border">
+                        <div class="flex justify-center gap-2">
+                            <button data-action="toggleScores" data-index="${i}"
+                            class="px-3 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                            View Scores
+                            </button>
+
+                            <button data-action="viewReport" data-student-id="${escapeHtml(s.id)}"
+                            data-student-name="${escapeHtml(`${s.first_name} ${s.last_name}`)}"
+                            class="px-3 py-2 text-sm rounded bg-emerald-600 text-white hover:bg-emerald-700">
+                            View Report Card
+                            </button>
+                        </div>
+                        </td>
+
+
 					`;
                     tbody.appendChild(row);
 
@@ -296,11 +302,25 @@ if (!$isTeacher) {
                 if (!btn) return;
 
                 const action = btn.dataset.action;
-                const i = parseInt(btn.dataset.index, 10);
-                if (Number.isNaN(i)) return;
 
-                if (action === 'toggleScores') toggleScores(i);
+                if (action === 'toggleScores') {
+                    const i = parseInt(btn.dataset.index, 10);
+                    if (!Number.isNaN(i)) toggleScores(i);
+                    return;
+                }
+
+                if (action === 'viewReport') {
+                    const studentId = btn.dataset.studentId;
+                    const studentName = btn.dataset.studentName;
+
+                    try {
+                        localStorage.setItem('selected_student_name', studentName || '');
+                    } catch (_) {}
+
+                    window.location.href = `./student_report.php?student_id=${encodeURIComponent(studentId)}`;
+                }
             });
+
 
             function toggleScores(i) {
                 const el = document.getElementById(`scores-${i}`);
