@@ -159,7 +159,7 @@ class ReportModel
     }
 
     /**
-     * Admin scope: all grades, grouped by grade + subject
+     * Admin can access all grades, grouped by grade + subject
      * $term: first_term|second_term|third_term|overall
      */
 
@@ -202,7 +202,7 @@ class ReportModel
     }
 
     /**
-     * Teacher scope: restrict to a specific grade_id
+     * Teacher is restricted to a specific grade_id
      */
 
     public function getGradeSubjectAveragesRowsByGrade(int $gradeId, int $year, array $subjects, string $term): array
@@ -248,7 +248,7 @@ class ReportModel
     }
 
     /**
-     * Builds SQL expression for term averaging.
+     * Below builds the SQL expression for calculating the termm averaging.
      * - overall = average of available terms per score row (ignores NULLs)
      * - otherwise uses one term column
      */

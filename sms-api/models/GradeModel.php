@@ -34,28 +34,4 @@ class GradeModel
 
         return $row ?: null;
     }
-
-    public function create(int $gradeNo): int
-    {
-        $stmt = $this->db->prepare("INSERT INTO grades (grade_no) VALUES (:grade_no)");
-        $stmt->execute([':grade_no' => $gradeNo]);
-
-        return (int)$this->db->lastInsertId();
-    }
-
-    public function update(int $id, int $gradeNo): bool
-    {
-        $stmt = $this->db->prepare("UPDATE grades SET grade_no = :grade_no WHERE id = :id");
-        $stmt->execute([':grade_no' => $gradeNo, ':id' => $id]);
-
-        return $stmt->rowCount() > 0;
-    }
-
-    public function delete(int $id): bool
-    {
-        $stmt = $this->db->prepare("DELETE FROM grades WHERE id = :id");
-        $stmt->execute([':id' => $id]);
-
-        return $stmt->rowCount() > 0;
-    }
 }

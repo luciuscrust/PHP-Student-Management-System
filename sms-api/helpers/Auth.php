@@ -36,6 +36,7 @@ class Auth
     /**
      * @param string|string[] $roles Allowed role(s)
      */
+
     public static function requireRole(string|array $roles): array
     {
         $user = self::requireLogin();
