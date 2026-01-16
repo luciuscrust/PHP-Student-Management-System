@@ -11,7 +11,7 @@ class ClassModel
         $this->db = Database::getConnection();
     }
 
-    public function getClassesByGrade($gradeId)
+    public function getClassesByGrade(int $gradeId)
     {
         $sql = "SELECT id, class 
                 FROM classes 

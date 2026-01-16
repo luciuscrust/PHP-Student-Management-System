@@ -3,7 +3,10 @@
 require_once __DIR__ . '/controllers/ApiController.php';
 
 require_once __DIR__ . '/controllers/GradeContoller.php';
-require_once __DIR__ . '/controllers/ClassContoller.php';
+require_once __DIR__ . '/controllers/ClassController.php';
+require_once __DIR__ . '/controllers/StudentReportController.php';
+require_once __DIR__ . '/controllers/ReportController.php';
+require_once __DIR__ . '/controllers/GradeSubjectAverageController.php';
 
 require_once __DIR__ . '/controllers/AuthContoller.php';
 
@@ -14,8 +17,12 @@ use helpers\Auth;
 use helpers\JsonHelpers;
 
 $apiController  = new ApiController();
+
 $gradeController  = new GradeController();
 $classController  = new ClassController();
+$reportController = new ReportController();
+$studentReportController = new StudentReportController();
+$gradeAvgController = new GradeSubjectAverageController();
 
 $authController = new AuthController();
 
@@ -56,7 +63,9 @@ if (($uri === '/auth/me' || $uri === '/auth/me/') && $method === 'GET') {
 // --------------------
 Auth::requireLogin();
 
+
 // Grade Related Routes
+
 // GET /grades
 if ($uri === '/grades' && $method === 'GET') {
     Auth::requireRole('admin');
@@ -64,39 +73,24 @@ if ($uri === '/grades' && $method === 'GET') {
     exit;
 }
 
-// GET /grades/show?id=1
-if ($uri === '/grades/show' && $method === 'GET') {
+// GET /grade-subject-averages
+if ($uri === '/grade-subject-averages' && $method === 'GET') {
     Auth::requireRole('admin');
-    $gradeController->getGradeById();
+    $gradeAvgController->getGradeSubjectAveragesAdmin();
     exit;
 }
 
-// POST /grades
-// body: { "grade_no": 7 }
-if ($uri === '/grades' && $method === 'POST') {
-    Auth::requireRole('admin');
-    $gradeController->createGrade();
+// GET /teacher/grade-subject-averages
+if ($uri === '/teacher/grade-subject-averages' && $method === 'GET') {
+    Auth::requireRole('teacher');
+    $gradeAvgController->getGradeSubjectAveragesTeacher();
     exit;
 }
-
-// PUT /grades?id=1
-// body: { "grade_no": 8 }
-if ($uri === '/grades' && $method === 'PUT') {
-    Auth::requireRole('admin');
-    $gradeController->updateGrade();
-    exit;
-}
-
-// DELETE /grades?id=1
-if ($uri === '/grades' && $method === 'DELETE') {
-    Auth::requireRole('admin');
-    $gradeController->deleteGrade();
-    exit;
-}
-
 
 
 // Class Related Routes
+
+// GET /get-classes?grade_id=id
 if ($uri === '/get-classes' && $method === 'GET') {
     Auth::requireRole('admin');
     $classController->getClassesByGrade();
@@ -121,6 +115,41 @@ if ($uri === '/get-classes' && $method === 'GET') {
 //     exit;
 // }
 
+
+// Student and Score Related Routes
+// If no year is specified, the most recent scoring year for the class will be used
+
+// Admin: single student report
+// GET /student-report?student_id=?&year=?
+if ($uri === '/student-report' && $method === 'GET') {
+    Auth::requireRole('admin');
+    $studentReportController->getStudentReportAdmin();
+    exit;
+}
+
+// Teacher: single student report (restricted)
+// GET /teacher/student-report?student_id=?&year=?
+if ($uri === '/teacher/student-report' && $method === 'GET') {
+    Auth::requireRole('teacher');
+    $studentReportController->getStudentReportTeacher();
+    exit;
+}
+
+// Admin Class report: class_id is provided
+// GET /class-report?class_id=?&year=?
+if ($uri === '/class-report' && $method === 'GET') {
+    Auth::requireRole('admin');
+    $reportController->getClassReportAdmin();
+    exit;
+}
+
+// Teacher Class report: class_id comes from session
+// GET /class-report?year=?
+if ($uri === '/teacher/class-report' && $method === 'GET') {
+    Auth::requireRole('teacher');
+    $reportController->getClassReportTeacher();
+    exit;
+}
 
 
 // 404
