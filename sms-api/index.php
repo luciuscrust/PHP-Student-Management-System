@@ -8,6 +8,7 @@ require_once __DIR__ . '/controllers/StudentReportController.php';
 require_once __DIR__ . '/controllers/ReportController.php';
 require_once __DIR__ . '/controllers/GradeSubjectAverageController.php';
 require_once __DIR__ . '/controllers/StudentController.php';
+require_once __DIR__ . '/controllers/UserController.php';
 
 
 require_once __DIR__ . '/controllers/AuthContoller.php';
@@ -26,6 +27,7 @@ $reportController = new ReportController();
 $studentReportController = new StudentReportController();
 $gradeAvgController = new GradeSubjectAverageController();
 $studentController = new StudentController();
+$userController = new UserController();
 
 
 $authController = new AuthController();

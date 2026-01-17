@@ -5,7 +5,6 @@ require_once __DIR__ . '../../../helpers/RoleGuard.php';
 requireRole('admin');
 
 $user = $_SESSION['user'] ?? ['email' => ''];
-
 ?>
 <!doctype html>
 <html lang="en">
@@ -18,36 +17,102 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 </head>
 
 <body class="min-h-screen bg-gray-100 p-6">
-	<div class="max-w-4xl mx-auto space-y-6">
+	<div class="max-w-6xl mx-auto space-y-6">
 
 		<div class="bg-white p-6 rounded shadow">
 			<div class="flex items-start justify-between gap-4">
 				<div>
 					<h1 class="text-xl font-semibold">Welcome, Admin</h1>
-					<p class="text-sm text-gray-600 mt-1">Select a grade to continue.</p>
+					<p class="text-sm text-gray-600 mt-1">Manage users and view grades.</p>
 				</div>
 
 				<a href="../auth/logout.php" class="text-indigo-600 hover:underline">Logout</a>
 			</div>
 		</div>
 
+		<!-- USERS: Create + Delete -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+			<!-- Create User -->
+			<div class="bg-white p-6 rounded shadow space-y-4">
+				<div class="flex items-center justify-between">
+					<h2 class="text-lg font-semibold">Create User</h2>
+					<span id="userStatus" class="hidden text-xs px-2 py-1 rounded bg-gray-100 text-gray-700"></span>
+				</div>
+
+				<div id="userErrBox" class="hidden p-3 rounded text-sm text-red-700 bg-red-100"></div>
+				<div id="userOkBox" class="hidden p-3 rounded text-sm text-green-700 bg-green-100"></div>
+
+				<form id="createUserForm" class="space-y-3" autocomplete="off">
+					<div>
+						<label class="block mb-1 text-sm font-medium">Role</label>
+						<select id="role" class="w-full border rounded px-3 py-2">
+							<option value="teacher">teacher</option>
+							<option value="admin">admin</option>
+						</select>
+						<p class="text-xs text-gray-500 mt-1">Admins cannot be deleted via UI.</p>
+					</div>
+
+					<div>
+						<label class="block mb-1 text-sm font-medium">Email</label>
+						<input id="email" type="email" class="w-full border rounded px-3 py-2" placeholder="user@example.com" required />
+					</div>
+
+					<div>
+						<label class="block mb-1 text-sm font-medium">Password</label>
+						<input id="password" type="password" class="w-full border rounded px-3 py-2" placeholder="StrongPass123#" required />
+						<p class="text-xs text-gray-500 mt-1">8+ chars, letters + numbers + symbol.</p>
+					</div>
+
+					<div id="classWrap">
+						<label class="block mb-1 text-sm font-medium">Class (teacher only)</label>
+						<select id="class_id" class="w-full border rounded px-3 py-2">
+							<option value="">Select Class</option>
+						</select>
+						<p class="text-xs text-gray-500 mt-1">Required when role = teacher.</p>
+					</div>
+
+					<button type="submit" class="w-full py-2 px-4 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+						Create User
+					</button>
+				</form>
+			</div>
+
+			<!-- Delete User -->
+			<div class="bg-white p-6 rounded shadow space-y-4">
+				<h2 class="text-lg font-semibold">Delete User</h2>
+
+				<div class="text-sm text-gray-600">
+					Delete by ID (teachers / non-admins only). Admin users cannot be deleted.
+				</div>
+
+				<div class="flex gap-2">
+					<input id="deleteUserId" type="number" class="flex-1 border rounded px-3 py-2" placeholder="User ID e.g. 5" min="1" />
+					<button id="deleteBtn" type="button" class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
+						Delete
+					</button>
+				</div>
+
+				<div id="delErrBox" class="hidden p-3 rounded text-sm text-red-700 bg-red-100"></div>
+				<div id="delOkBox" class="hidden p-3 rounded text-sm text-green-700 bg-green-100"></div>
+			</div>
+
+		</div>
+
+		<!-- GRADES -->
 		<div class="bg-white p-6 rounded shadow">
 			<div class="flex items-center justify-between gap-4 mb-4">
 				<h2 class="text-lg font-semibold">Grades</h2>
 
 				<div class="flex items-center gap-2">
 					<span id="statusPill" class="hidden text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">Loading…</span>
-					<button
-						id="refreshBtn"
-						type="button"
-						class="text-sm px-3 py-2 rounded border hover:bg-gray-50">
+					<button id="refreshBtn" type="button" class="text-sm px-3 py-2 rounded border hover:bg-gray-50">
 						Refresh
 					</button>
 				</div>
 			</div>
 
 			<div id="errBox" class="hidden mb-4 p-3 rounded text-sm text-red-700 bg-red-100"></div>
-
 
 			<div id="loading" class="space-y-3">
 				<div class="h-12 bg-gray-100 rounded animate-pulse"></div>
@@ -67,6 +132,219 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 		(() => {
 			const API_BASE = 'http://localhost/PHP-Student-Management-System/sms-api';
 
+			const show = (el) => el.classList.remove('hidden');
+			const hide = (el) => el.classList.add('hidden');
+
+			function escapeHtml(str) {
+				return String(str ?? '')
+					.replaceAll('&', '&amp;')
+					.replaceAll('<', '&lt;')
+					.replaceAll('>', '&gt;')
+					.replaceAll('"', '&quot;')
+					.replaceAll("'", '&#039;');
+			}
+
+			async function apiRequest(path, options = {}) {
+				const res = await fetch(`${API_BASE}${path}`, {
+					credentials: 'include',
+					headers: {
+						'Accept': 'application/json',
+						...(options.headers || {})
+					},
+					...options
+				});
+
+				let data = null;
+				try {
+					data = await res.json();
+				} catch (_) {}
+
+				if (!res.ok) {
+					throw new Error(data?.error || data?.message || `Request failed (HTTP ${res.status}).`);
+				}
+				return data;
+			}
+
+			// =========================================================
+			// USERS: Create + Delete
+			// =========================================================
+
+			const createUserForm = document.getElementById('createUserForm');
+			const roleEl = document.getElementById('role');
+			const emailEl = document.getElementById('email');
+			const passwordEl = document.getElementById('password');
+			const classWrap = document.getElementById('classWrap');
+			const classIdEl = document.getElementById('class_id');
+
+			const userStatus = document.getElementById('userStatus');
+			const userErrBox = document.getElementById('userErrBox');
+			const userOkBox = document.getElementById('userOkBox');
+
+			const deleteUserIdEl = document.getElementById('deleteUserId');
+			const deleteBtn = document.getElementById('deleteBtn');
+			const delErrBox = document.getElementById('delErrBox');
+			const delOkBox = document.getElementById('delOkBox');
+
+			function setUserStatus(text) {
+				if (!text) {
+					hide(userStatus);
+					userStatus.textContent = '';
+					return;
+				}
+				userStatus.textContent = text;
+				show(userStatus);
+			}
+
+			function clearUserMsgs() {
+				hide(userErrBox);
+				hide(userOkBox);
+				userErrBox.textContent = '';
+				userOkBox.textContent = '';
+			}
+
+			function showUserError(msg) {
+				userErrBox.textContent = msg || 'Something went wrong.';
+				show(userErrBox);
+				hide(userOkBox);
+			}
+
+			function showUserOk(msg) {
+				userOkBox.textContent = msg || 'Success.';
+				show(userOkBox);
+				hide(userErrBox);
+				setTimeout(() => hide(userOkBox), 2500);
+			}
+
+			function syncRoleUI() {
+				const role = roleEl.value;
+				if (role === 'teacher') show(classWrap);
+				else hide(classWrap);
+			}
+			roleEl.addEventListener('change', syncRoleUI);
+			syncRoleUI();
+
+
+			async function loadAllClassesIntoDropdown() {
+				classIdEl.innerHTML = '<option value="">Select Class</option>';
+
+				try {
+					const gradesRes = await apiRequest('/grades', {
+						method: 'GET'
+					});
+					const grades = gradesRes?.grades;
+					if (!Array.isArray(grades)) return;
+
+					for (const g of grades) {
+						const gradeId = g.id;
+						const gradeNo = g.grade_no;
+
+						const clsRes = await apiRequest(`/get-classes?grade_id=${encodeURIComponent(gradeId)}`, {
+							method: 'GET'
+						});
+						const classes =
+							Array.isArray(clsRes?.data) ? clsRes.data :
+							Array.isArray(clsRes?.classes) ? clsRes.classes : [];
+
+						if (!classes.length) continue;
+
+						const og = document.createElement('optgroup');
+						og.label = `Grade ${gradeNo}`;
+
+						for (const c of classes) {
+							const id = c.id;
+							const name = c.name ?? c.class ?? `Class ${id}`;
+							const opt = new Option(String(name), String(id));
+							og.appendChild(opt);
+						}
+						classIdEl.appendChild(og);
+					}
+				} catch (_) {}
+			}
+			loadAllClassesIntoDropdown();
+
+			createUserForm.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				clearUserMsgs();
+
+				const role = roleEl.value;
+				const email = (emailEl.value || '').trim();
+				const password = passwordEl.value || '';
+				const class_id = classIdEl.value ? Number(classIdEl.value) : null;
+
+				if (!email) return showUserError('Email is required.');
+				if (!password) return showUserError('Password is required.');
+				if (role === 'teacher' && (!class_id || class_id <= 0)) return showUserError('Class is required for teacher.');
+
+				setUserStatus('Creating user…');
+
+				try {
+					const payload = {
+						role,
+						email,
+						password,
+						class_id
+					};
+
+					if (role === 'admin') payload.class_id = null;
+
+					const res = await apiRequest('/users', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(payload)
+					});
+
+					showUserOk(`User created (ID: ${res?.user?.id ?? '—'})`);
+
+					emailEl.value = '';
+					passwordEl.value = '';
+					classIdEl.value = '';
+				} catch (err) {
+					showUserError(err?.message || 'Failed to create user.');
+				} finally {
+					setUserStatus('');
+				}
+			});
+
+			deleteBtn.addEventListener('click', async () => {
+				hide(delErrBox);
+				hide(delOkBox);
+				delErrBox.textContent = '';
+				delOkBox.textContent = '';
+
+				const id = Number(deleteUserIdEl.value);
+				if (!id || id <= 0) {
+					delErrBox.textContent = 'Please enter a valid user ID.';
+					show(delErrBox);
+					return;
+				}
+
+				if (!confirm(`Delete user #${id}? Admin users cannot be deleted.`)) return;
+
+				try {
+					deleteBtn.disabled = true;
+
+					await apiRequest(`/users?id=${encodeURIComponent(id)}`, {
+						method: 'DELETE'
+					});
+
+					delOkBox.textContent = `User #${id} deleted successfully.`;
+					show(delOkBox);
+					deleteUserIdEl.value = '';
+				} catch (err) {
+					delErrBox.textContent = err?.message || 'Failed to delete user.';
+					show(delErrBox);
+				} finally {
+					deleteBtn.disabled = false;
+					setTimeout(() => hide(delOkBox), 2500);
+				}
+			});
+
+			// =========================================================
+			// Grades + averages
+			// =========================================================
+
 			const listEl = document.getElementById('gradesList');
 			const errBox = document.getElementById('errBox');
 			const loading = document.getElementById('loading');
@@ -75,14 +353,6 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 			const statusPill = document.getElementById('statusPill');
 
 			let avgByGradeNo = {};
-
-			function show(el) {
-				el.classList.remove('hidden');
-			}
-
-			function hide(el) {
-				el.classList.add('hidden');
-			}
 
 			function setStatus(text) {
 				if (!text) {
@@ -116,34 +386,10 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 				}
 			}
 
-			function escapeHtml(str) {
-				return String(str ?? '')
-					.replaceAll('&', '&amp;')
-					.replaceAll('<', '&lt;')
-					.replaceAll('>', '&gt;')
-					.replaceAll('"', '&quot;')
-					.replaceAll("'", '&#039;');
-			}
-
 			async function apiGet(path) {
-				const res = await fetch(`${API_BASE}${path}`, {
-					method: 'GET',
-					headers: {
-						'Accept': 'application/json'
-					},
-					credentials: 'include'
+				return apiRequest(path, {
+					method: 'GET'
 				});
-
-				let data = null;
-				try {
-					data = await res.json();
-				} catch (_) {}
-
-				if (!res.ok) {
-					throw new Error(data?.message || data?.error || `Request failed (HTTP ${res.status}).`);
-				}
-
-				return data;
 			}
 
 			async function loadGradeAverages() {
@@ -226,14 +472,12 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 						const gradeId = g.id;
 						const gradeName = g.name;
 
-
 						try {
 							localStorage.setItem('selected_grade_id', String(gradeId));
 							localStorage.setItem('selected_grade_name', String(gradeName));
 						} catch (_) {}
 
 						window.location.href = `./class.php?grade_id=${encodeURIComponent(gradeId)}`;
-
 					});
 
 					listEl.appendChild(li);
@@ -278,8 +522,6 @@ $user = $_SESSION['user'] ?? ['email' => ''];
 			loadGradesAndAverages();
 		})();
 	</script>
-
-
 </body>
 
 </html>

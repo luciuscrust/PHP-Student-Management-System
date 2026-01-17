@@ -15,6 +15,7 @@ class StudentController
      * Add a new student
      * POST: class_id, first_name, last_name
      */
+
     public function addStudent(): void
     {
         if (
