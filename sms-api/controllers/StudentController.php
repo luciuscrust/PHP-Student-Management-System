@@ -79,6 +79,7 @@ class StudentController
      * Delete student by ID
      * POST: id
      */
+
     public function deleteStudent(): void
     {
         if (!isset($_POST['id'])) {

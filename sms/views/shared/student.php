@@ -691,7 +691,6 @@ if (!$isTeacher) {
                                 first_term: first_term === null ? '' : String(first_term),
                                 second_term: second_term === null ? '' : String(second_term),
                                 third_term: third_term === null ? '' : String(third_term),
-
                             }
                         });
 
