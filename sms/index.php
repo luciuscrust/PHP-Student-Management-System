@@ -32,7 +32,7 @@ $csrf = $_SESSION['csrf_token'];
 
 <body class="min-h-screen bg-gray-50 flex items-center justify-center">
 	<div class="w-full max-w-md p-8 bg-white rounded shadow">
-		<h1 class="text-2xl font-semibold mb-6 text-center">School Management System<br />Login</h1>
+		<h1 class="text-2xl font-semibold mb-6 text-center">CSE3101 Project <br> School Management System<br />Login</h1>
 
 		<?php if (!empty($_SESSION['flash'])): ?>
 			<div class="mb-4 p-3 rounded text-sm <?= htmlspecialchars($_SESSION['flash_type'] ?? 'text-red-700 bg-red-100') ?>">

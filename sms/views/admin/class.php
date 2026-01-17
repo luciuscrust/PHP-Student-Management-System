@@ -171,7 +171,6 @@ $apiBase = 'http://localhost/PHP-Student-Management-System/sms-api';
 							data-class-name="${escapeHtml(String(className))}">
 							<div>
 								<div class="font-medium text-gray-900">${escapeHtml(String(className))}</div>
-                                <div class="mt-2 text-xs text-gray-500">ID: ${escapeHtml(String(classId))}</div>
 							</div>
 						</button>
 					`;

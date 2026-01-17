@@ -71,7 +71,7 @@ if (!$isTeacher) {
 
             <?php if (!$isTeacher): ?>
                 <div class="border rounded p-4 bg-gray-50">
-                    <h3 class="font-semibold mb-3">Student Management (Admin)</h3>
+                    <h3 class="font-semibold mb-3">Student Management</h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
@@ -115,7 +115,7 @@ if (!$isTeacher) {
                 </div>
 
                 <div class="border rounded p-4 bg-gray-50 mt-4">
-                    <h3 class="font-semibold mb-3">Score Management (Admin)</h3>
+                    <h3 class="font-semibold mb-3">Score Management</h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
