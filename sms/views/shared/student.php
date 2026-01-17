@@ -108,7 +108,9 @@ if (!$isTeacher) {
                     </div>
 
                     <p class="text-xs text-gray-600 mt-2">
-                        Uses class_id from the URL (admin view). If class_id is missing, add it to the URL.
+                        Add Student - First Name | Last Name <br>
+                        Update Student - Student_ID | Updated First Name | Updated Last Name <br>
+                        Delete Student - Student_ID <br>
                     </p>
                 </div>
             <?php endif; ?>
