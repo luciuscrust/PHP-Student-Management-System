@@ -109,7 +109,43 @@ if ($uri === '/get-classes' && $method === 'GET') {
 
 
 
-// Student and Score Related Routes
+// Student Related Routes
+
+// Add student
+// POST /students
+if ($uri === '/students' && $method === 'POST') {
+    Auth::requireRole('admin');
+    $studentController->addStudent();
+    exit;
+}
+
+// Update student
+// PUT /students
+if ($uri === '/students' && $method === 'PUT') {
+    Auth::requireRole('admin');
+    $studentController->updateStudent();
+    exit;
+}
+
+// Delete student
+// DELETE /students
+if ($uri === '/students' && $method === 'DELETE') {
+    Auth::requireRole('admin');
+    $studentController->deleteStudent();
+    exit;
+}
+
+// Save or update scores
+// POST /students/scores
+if ($uri === '/students/scores' && $method === 'POST') {
+    Auth::requireRole('teacher');
+    $studentController->saveScores();
+    exit;
+}
+
+
+
+// Score and Report Related Routes
 // If no year is specified, the most recent scoring year for the class will be used
 
 // Admin: single student report
@@ -144,48 +180,9 @@ if ($uri === '/teacher/class-report' && $method === 'GET') {
     exit;
 }
 
-// Add student
-// POST /students
-if ($uri === '/students' && $method === 'POST') {
-    Auth::requireRole('admin');
-    $studentController->addStudent();
-    exit;
-}
-
-// Update student
-// PUT /students
-if ($uri === '/students' && $method === 'PUT') {
-    Auth::requireRole('admin');
-    $studentController->updateStudent();
-    exit;
-}
-
-// Delete student
-// DELETE /students
-if ($uri === '/students' && $method === 'DELETE') {
-    Auth::requireRole('admin');
-    $studentController->deleteStudent();
-    exit;
-}
-
-// Save or update scores
-// POST /students/scores
-if ($uri === '/students/scores' && $method === 'POST') {
-    Auth::requireRole('teacher');
-    $studentController->saveScores();
-    exit;
-}
-
-// Get student scores
-// GET /students/scores?student_id=&school_year=
-if ($uri === '/students/scores' && $method === 'GET') {
-    Auth::requireRole('teacher');
-    $studentController->getStudentScores();
-    exit;
-}
 
 
-// User operations related routes
+// User Operations Related Routes
 
 // POST /users
 if ($uri === '/users' && $method === 'POST') {
