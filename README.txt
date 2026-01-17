@@ -1,4 +1,4 @@
-Student Management System (SMS) — XAMPP Setup & Run Guide
+CSE3101 - Project - Student Management System (SMS) - XAMPP Setup & Run Guide
 ========================================================
 
 This document explains how to set up and run our
