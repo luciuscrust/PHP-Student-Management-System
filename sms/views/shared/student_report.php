@@ -41,7 +41,7 @@ $apiBase = 'http://localhost/PHP-Student-Management-System/sms-api';
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <h1 class="text-xl font-semibold">
-                        <span id="studentNameBadge" class="text-xl font-semibold"></span>
+                        <h2 class="text-lg font-semibold">Report Card</h2>
                     </h1>
                     <p class="text-sm text-gray-600 mt-1">
                         Student ID: <?= htmlspecialchars((string)$studentId) ?>
@@ -53,7 +53,8 @@ $apiBase = 'http://localhost/PHP-Student-Management-System/sms-api';
 
         <div class="bg-white p-6 rounded shadow space-y-4">
             <div class="flex items-center justify-between gap-4">
-                <h2 class="text-lg font-semibold">Report Card</h2>
+                <span id="studentNameBadge" class="text-xl font-semibold"></span>
+
                 <span id="statusPill" class="hidden text-xs px-2 py-1 rounded bg-gray-100 text-gray-700"></span>
             </div>
 
