@@ -140,7 +140,7 @@ if ($uri === '/delete-student' && $method === 'POST') {
 // Save or update scores
 // POST /students/scores
 if ($uri === '/students/scores' && $method === 'POST') {
-    Auth::requireRole('admin');
+    Auth::requireRole(['admin', 'teacher']);
     $studentController->saveScores();
     exit;
 }
