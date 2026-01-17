@@ -14,6 +14,7 @@ class StudentModel
     /**
      * Add a new student
      */
+
     public function addStudent(int $classId, string $firstName, string $lastName): int
     {
         $sql = "INSERT INTO students (class_id, first_name, last_name)
@@ -32,6 +33,7 @@ class StudentModel
     /**
      * Update student details by ID
      */
+
     public function updateStudent(
         int $studentId,
         int $classId,
@@ -57,6 +59,7 @@ class StudentModel
     /**
      * Delete a student and all their scores
      */
+
     public function deleteStudent(int $studentId): bool
     {
         try {
@@ -72,7 +75,6 @@ class StudentModel
 
             $this->db->commit();
             return true;
-
         } catch (PDOException $e) {
             $this->db->rollBack();
             return false;
@@ -82,6 +84,7 @@ class StudentModel
     /**
      * Add or update scores for a student per subject and school year
      */
+
     public function saveScores(
         int $studentId,
         int $subjectId,
