@@ -1,5 +1,7 @@
 <?php
 
+use helpers\JsonHelpers;
+
 require_once __DIR__ . '/../models/ReportModel.php';
 
 class ReportController
@@ -43,9 +45,9 @@ class ReportController
             $year = $this->reportModel->getMostRecentYearForClass($classId);
 
             if ($year === null) {
-                http_response_code(404);
-                echo json_encode(['error' => 'No scores found for this class']);
-                exit;
+                JsonHelpers::json(404, [
+                    'error' => 'No scores found for this class'
+                ]);
             }
         }
 
@@ -89,9 +91,9 @@ class ReportController
             $year = $this->reportModel->getMostRecentYearForClass($classId);
 
             if ($year === null) {
-                http_response_code(404);
-                echo json_encode(['error' => 'No scores found for this class']);
-                exit;
+                JsonHelpers::json(404, [
+                    'error' => 'No scores found for this class'
+                ]);
             }
         }
 
@@ -133,14 +135,11 @@ class ReportController
             ];
         }
 
-        http_response_code(200);
-        echo json_encode([
+        JsonHelpers::json(200, [
             'class_id' => $classId,
             'year'     => $year,
             'auto_year' => !isset($_GET['year']),
             'students' => array_values($studentsMap)
         ]);
-
-        exit;
     }
 }

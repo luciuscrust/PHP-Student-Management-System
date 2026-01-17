@@ -1,5 +1,7 @@
 <?php
 
+use helpers\JsonHelpers;
+
 require_once __DIR__ . '/../models/ReportModel.php';
 
 class GradeSubjectAverageController
@@ -45,9 +47,10 @@ class GradeSubjectAverageController
 
         $latest = $this->reportModel->getMostRecentYearOverall();
         if ($latest === null) {
-            http_response_code(404);
-            echo json_encode(['error' => 'No scores found (no year available).']);
-            exit;
+
+            JsonHelpers::json(404, [
+                'error' => 'No scores found (no year available).'
+            ]);
         }
 
         return $latest;
@@ -62,9 +65,9 @@ class GradeSubjectAverageController
 
         $latest = $this->reportModel->getMostRecentYearForClass($classId);
         if ($latest === null) {
-            http_response_code(404);
-            echo json_encode(['error' => 'No scores found for your class (no year available).']);
-            exit;
+            JsonHelpers::json(404, [
+                'error' => 'No scores found for your class (no year available).'
+            ]);
         }
 
         return $latest;
@@ -84,9 +87,10 @@ class GradeSubjectAverageController
         $rows = $this->reportModel->getGradeSubjectAveragesRows($year, $subjects, $term);
 
         if (count($rows) === 0) {
-            http_response_code(404);
-            echo json_encode(['error' => 'No matching data found for the selected filters.']);
-            exit;
+
+            JsonHelpers::json(404, [
+                'error' => 'No matching data found for the selected filters.'
+            ]);
         }
 
         $this->respond($rows, $year, $term, $subjects);
@@ -125,18 +129,20 @@ class GradeSubjectAverageController
         $year = $this->resolveYearTeacher($classId);
 
         $gradeId = $this->reportModel->getGradeIdForClass($classId);
+
         if ($gradeId === null) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Class not found']);
-            exit;
+
+            JsonHelpers::json(404, [
+                'error' => 'Class not found'
+            ]);
         }
 
         $rows = $this->reportModel->getGradeSubjectAveragesRowsByGrade($gradeId, $year, $subjects, $term);
 
         if (count($rows) === 0) {
-            http_response_code(404);
-            echo json_encode(['error' => 'No matching data found for your grade with the selected filters.']);
-            exit;
+            JsonHelpers::json(404, [
+                'error' => 'No matching data found for your grade with the selected filters.'
+            ]);
         }
 
         $this->respond($rows, $year, $term, $subjects);
@@ -165,13 +171,11 @@ class GradeSubjectAverageController
 
         usort($result, fn($a, $b) => $a['grade_no'] <=> $b['grade_no']);
 
-        http_response_code(200);
-        echo json_encode([
+        JsonHelpers::json(200, [
             'year' => $year,
             'term' => $term,
             'subjects' => array_values($subjects),
             'grades' => $result
         ]);
-        exit;
     }
 }

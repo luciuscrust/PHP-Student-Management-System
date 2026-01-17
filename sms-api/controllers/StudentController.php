@@ -1,5 +1,7 @@
 <?php
 
+use helpers\JsonHelpers;
+
 require_once __DIR__ . '/../models/StudentModel.php';
 
 class StudentController
@@ -32,8 +34,7 @@ class StudentController
             trim($_POST['last_name'])
         );
 
-        http_response_code(201);
-        echo json_encode([
+        JsonHelpers::json(201, [
             'message'    => 'Student added successfully',
             'student_id' => $studentId
         ]);
@@ -60,8 +61,7 @@ class StudentController
             trim($_POST['last_name'])
         );
 
-        http_response_code($success ? 200 : 500);
-        echo json_encode([
+        JsonHelpers::json($success ? 200 : 500, [
             'success' => $success
         ]);
     }
@@ -80,8 +80,7 @@ class StudentController
 
         $success = $this->StudentModel->deleteStudent((int) $_POST['id']);
 
-        http_response_code($success ? 200 : 500);
-        echo json_encode([
+        JsonHelpers::json($success ? 200 : 500, [
             'success' => $success
         ]);
     }
@@ -130,6 +129,7 @@ class StudentController
      * Get student scores
      * GET: student_id, school_year
      */
+
     public function getStudentScores(): void
     {
         if (!isset($_GET['student_id'], $_GET['school_year'])) {
@@ -143,9 +143,9 @@ class StudentController
             (int) $_GET['school_year']
         );
 
-        http_response_code(200);
-        echo json_encode([
+        JsonHelpers::json(200, [
             'scores' => $scores
+
         ]);
     }
 }

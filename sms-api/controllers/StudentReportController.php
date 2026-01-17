@@ -1,5 +1,7 @@
 <?php
 
+use helpers\JsonHelpers;
+
 require_once __DIR__ . '/../models/ReportModel.php';
 
 class StudentReportController
@@ -31,9 +33,10 @@ class StudentReportController
 
         $latest = $this->reportModel->getMostRecentYearForStudent($studentId);
         if ($latest === null) {
-            http_response_code(404);
-            echo json_encode(['error' => 'No scores found for this student (no year available).']);
-            exit;
+
+            JsonHelpers::json(404, [
+                'error' => 'No scores found for this student (no year available).'
+            ]);
         }
 
         return $latest;
@@ -67,45 +70,49 @@ class StudentReportController
     public function getStudentReportTeacher(): void
     {
         if (!isset($_GET['student_id'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'student_id is required']);
-            exit;
+            JsonHelpers::json(404, [
+                'error' => 'student_id is required'
+            ]);
         }
 
         if (session_status() === PHP_SESSION_NONE) session_start();
         if (!isset($_SESSION['user'])) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Not authenticated']);
-            exit;
+            JsonHelpers::json(401, [
+                'error' => 'Not authenticated'
+            ]);
         }
 
         $user = $_SESSION['user'];
         if (($user['role'] ?? '') !== 'teacher') {
-            http_response_code(403);
-            echo json_encode(['error' => 'Forbidden']);
-            exit;
+
+            JsonHelpers::json(403, [
+                'error' => 'Forbidden'
+            ]);
         }
 
         $teacherClassId = (int)($user['class_id'] ?? 0);
         if ($teacherClassId <= 0) {
-            http_response_code(409);
-            echo json_encode(['error' => 'Teacher is not assigned to a class']);
-            exit;
+
+            JsonHelpers::json(409, [
+                'error' => 'Teacher is not assigned to a class'
+            ]);
         }
 
         $studentId = (int)$_GET['student_id'];
 
         $studentClassId = $this->reportModel->getStudentClassId($studentId);
         if ($studentClassId === null) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Student not found']);
-            exit;
+
+            JsonHelpers::json(404, [
+                'error' => 'Student not found'
+            ]);
         }
 
         if ($studentClassId !== $teacherClassId) {
-            http_response_code(403);
-            echo json_encode(['error' => 'Forbidden: student is not in your class']);
-            exit;
+
+            JsonHelpers::json(403, [
+                'error' => 'Forbidden: student is not in your class'
+            ]);
         }
 
         $year = $this->resolveYear($studentId);
@@ -118,9 +125,9 @@ class StudentReportController
         $rows = $this->reportModel->getStudentReportRows($studentId, $year);
 
         if (count($rows) === 0) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Student not found or no subjects available']);
-            exit;
+            JsonHelpers::json(404, [
+                'error' => 'Student not found or no subjects available'
+            ]);
         }
 
         $first = $rows[0];
@@ -163,8 +170,6 @@ class StudentReportController
             $report['overall_average'] = round(array_sum($averages) / count($averages), 2);
         }
 
-        http_response_code(200);
-        echo json_encode($report);
-        exit;
+        JsonHelpers::json(200, $report);
     }
 }

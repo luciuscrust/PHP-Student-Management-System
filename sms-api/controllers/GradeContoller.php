@@ -1,5 +1,7 @@
 <?php
 
+use helpers\JsonHelpers;
+
 require_once __DIR__ . '/../models/GradeModel.php';
 
 class GradeController
@@ -22,8 +24,7 @@ class GradeController
             ];
         }, $rows);
 
-        http_response_code(200);
-        echo json_encode([
+        JsonHelpers::json(200, [
             'grades' => $grades
         ]);
     }

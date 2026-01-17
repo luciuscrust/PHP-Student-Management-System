@@ -1,6 +1,9 @@
 <?php
 
+use helpers\JsonHelpers;
+
 require_once __DIR__ . '/../models/ClassModel.php';
+
 
 class ClassController
 {
@@ -30,8 +33,7 @@ class ClassController
             ];
         }, $rows);
 
-        http_response_code(200);
-        echo json_encode([
+        JsonHelpers::json(200, [
             'classes' => $classes
         ]);
     }
