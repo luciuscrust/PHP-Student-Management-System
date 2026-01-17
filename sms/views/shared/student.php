@@ -113,6 +113,62 @@ if (!$isTeacher) {
                         Delete Student - Student_ID <br>
                     </p>
                 </div>
+
+                <div class="border rounded p-4 bg-gray-50 mt-4">
+                    <h3 class="font-semibold mb-3">Score Management (Admin)</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Student ID</label>
+                            <input id="score_student_id" type="number" class="w-full border rounded px-3 py-2" placeholder="e.g. 12" min="1" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Subject</label>
+                            <select id="score_subject"
+                                class="w-full border rounded px-3 py-2">
+                                <option value="">Select subject</option>
+                                <option value="math">Math</option>
+                                <option value="grammar">Grammar</option>
+                                <option value="science">Science</option>
+                                <option value="social">Social Studies</option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">School Year</label>
+                            <input id="score_school_year" type="number" class="w-full border rounded px-3 py-2" placeholder="e.g. 2025" min="2000" />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Term 1</label>
+                            <input id="score_first_term" type="number" step="0.01" class="w-full border rounded px-3 py-2" placeholder="e.g. 78" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Term 2</label>
+                            <input id="score_second_term" type="number" step="0.01" class="w-full border rounded px-3 py-2" placeholder="e.g. 82" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Term 3</label>
+                            <input id="score_third_term" type="number" step="0.01" class="w-full border rounded px-3 py-2" placeholder="e.g. 80" />
+                        </div>
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <button id="saveScoresBtn" type="button"
+                            class="px-3 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-sky-700">
+                            Save / Update Scores
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-gray-600 mt-2">
+                        This will create or update the student’s scores for the selected subject & school year.
+                    </p>
+                </div>
+
             <?php endif; ?>
 
             <div id="loading" class="hidden space-y-3">
@@ -206,6 +262,30 @@ if (!$isTeacher) {
                     setStatus('');
                     refreshBtn.disabled = false;
                     hide(loading);
+                }
+            }
+
+            function calculateSubjectId(subjectKey) {
+                const gradeIdRaw = localStorage.getItem('selected_grade_id');
+                const gradeId = Number(gradeIdRaw);
+
+                if (!gradeId || gradeId <= 0) {
+                    throw new Error('Invalid or missing selected_grade_id in localStorage.');
+                }
+
+                const base = 4 * (gradeId - 1);
+
+                switch (subjectKey) {
+                    case 'math':
+                        return 1 + base;
+                    case 'grammar':
+                        return 2 + base;
+                    case 'science':
+                        return 3 + base;
+                    case 'social':
+                        return 4 + base;
+                    default:
+                        throw new Error('Invalid subject selected.');
                 }
             }
 
@@ -395,6 +475,11 @@ if (!$isTeacher) {
             // -------------------------
 
             if (!IS_TEACHER) {
+
+                // -------------------------
+                // Student Add, Update and Delete Operation
+                // -------------------------
+
                 const stuIdEl = document.getElementById('stu_id');
                 const stuFirstEl = document.getElementById('stu_first');
                 const stuLastEl = document.getElementById('stu_last');
@@ -441,7 +526,7 @@ if (!$isTeacher) {
 
                         setTimeout(() => {
                             loadStudentsAndScores();
-                        }, 3000);
+                        }, 2000);
 
                     } catch (e) {
                         showError(e.message || 'Failed to add student.');
@@ -466,7 +551,7 @@ if (!$isTeacher) {
 
                         setStatus('Updating student…');
 
-                        $res = await apiRequest('/update-student', {
+                        await apiRequest('/update-student', {
                             method: 'POST',
                             body: {
                                 id: String(id),
@@ -481,11 +566,11 @@ if (!$isTeacher) {
 
                         setTimeout(() => {
                             loadStudentsAndScores();
-                        }, 3000);
+                        }, 2000);
 
 
                     } catch (error) {
-                        showError(error || 'Failed to update student.');
+                        showError(error.message || 'Failed to update student.');
                     } finally {
                         setStatus('');
                     }
@@ -514,7 +599,7 @@ if (!$isTeacher) {
 
                         setTimeout(() => {
                             loadStudentsAndScores();
-                        }, 3000);
+                        }, 2000);
 
                     } catch (e) {
                         showError(e.message || 'Failed to delete student.');
@@ -522,6 +607,76 @@ if (!$isTeacher) {
                         setStatus('');
                     }
                 });
+
+                // -------------------------
+                // Add and Update Student Subject Scores Across Terms
+                // -------------------------
+
+                const scoreStudentIdEl = document.getElementById('score_student_id');
+                const scoreSubjectEl = document.getElementById('score_subject');
+                const scoreSchoolYearEl = document.getElementById('score_school_year');
+                const scoreFirstEl = document.getElementById('score_first_term');
+                const scoreSecondEl = document.getElementById('score_second_term');
+                const scoreThirdEl = document.getElementById('score_third_term');
+                const saveScoresBtn = document.getElementById('saveScoresBtn');
+
+                saveScoresBtn?.addEventListener('click', async () => {
+                    clearMessages();
+
+                    const student_id = Number(scoreStudentIdEl.value);
+
+                    const subjectKey = scoreSubjectEl.value;
+
+                    if (!subjectKey) {
+                        return showError('Please select a subject.');
+                    }
+
+                    let subject_id;
+                    try {
+                        subject_id = calculateSubjectId(subjectKey);
+                    } catch (err) {
+                        return showError(err.message);
+                    }
+
+                    const school_year = Number(scoreSchoolYearEl.value);
+
+                    const first_term = Number(scoreFirstEl.value);
+                    const second_term = Number(scoreSecondEl.value);
+                    const third_term = Number(scoreThirdEl.value);
+
+                    if (!student_id || student_id <= 0) return showError('Valid Student ID is required.');
+                    if (!subject_id || subject_id <= 0) return showError('Valid Subject ID is required.');
+                    if (!school_year || school_year <= 0) return showError('Valid School Year is required.');
+
+                    if (Number.isNaN(first_term) || Number.isNaN(second_term) || Number.isNaN(third_term)) {
+                        return showError('Term 1, Term 2, and Term 3 must be numbers.');
+                    }
+
+                    try {
+                        setStatus('Saving scores…');
+
+                        await apiRequest('/students/scores', {
+                            method: 'POST',
+                            body: {
+                                student_id: String(student_id),
+                                subject_id: String(subject_id),
+                                school_year: String(school_year),
+                                first_term: String(first_term),
+                                second_term: String(second_term),
+                                third_term: String(third_term),
+                            }
+                        });
+
+                        showOk('Scores saved.');
+                        setTimeout(() => loadStudentsAndScores(), 1200);
+
+                    } catch (e) {
+                        showError(e.message || 'Failed to save scores.');
+                    } finally {
+                        setStatus('');
+                    }
+                });
+
             }
 
             refreshBtn.addEventListener('click', loadStudentsAndScores);
