@@ -133,6 +133,22 @@ if ($uri === '/teacher/class-report' && $method === 'GET') {
     exit;
 }
 
+// User operations related routes
+
+// POST /users
+if ($uri === '/users' && $method === 'POST') {
+    Auth::requireRole('admin');
+    $userController->createUser();
+    exit;
+}
+
+// DELETE /users?id=123
+if ($uri === '/users' && $method === 'DELETE') {
+    Auth::requireRole('admin');
+    $userController->deleteUser();
+    exit;
+}
+
 
 // 404
 JsonHelpers::json(404, [
