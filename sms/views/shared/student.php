@@ -69,6 +69,50 @@ if (!$isTeacher) {
                 </div>
             </div>
 
+            <?php if (!$isTeacher): ?>
+                <div class="border rounded p-4 bg-gray-50">
+                    <h3 class="font-semibold mb-3">Student Management (Admin)</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Student ID (for update/delete)</label>
+                            <input id="stu_id" type="number" class="w-full border rounded px-3 py-2" placeholder="e.g. 12" min="1" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">First Name</label>
+                            <input id="stu_first" type="text" class="w-full border rounded px-3 py-2" placeholder="First name" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Last Name</label>
+                            <input id="stu_last" type="text" class="w-full border rounded px-3 py-2" placeholder="Last name" />
+                        </div>
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <button id="addStudentBtn" type="button"
+                            class="px-3 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                            Add Student
+                        </button>
+
+                        <button id="updateStudentBtn" type="button"
+                            class="px-3 py-2 text-sm rounded bg-amber-600 text-white hover:bg-amber-700">
+                            Update Student
+                        </button>
+
+                        <button id="deleteStudentBtn" type="button"
+                            class="px-3 py-2 text-sm rounded bg-red-600 text-white hover:bg-red-700">
+                            Delete Student
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-gray-600 mt-2">
+                        Uses class_id from the URL (admin view). If class_id is missing, add it to the URL.
+                    </p>
+                </div>
+            <?php endif; ?>
+
             <div id="loading" class="hidden space-y-3">
                 <div class="h-12 bg-gray-100 rounded animate-pulse"></div>
                 <div class="h-12 bg-gray-100 rounded animate-pulse"></div>
@@ -121,7 +165,6 @@ if (!$isTeacher) {
                 }
             } catch (_) {}
 
-
             function setStatus(text) {
                 if (!text) {
                     hide(statusPill);
@@ -164,14 +207,25 @@ if (!$isTeacher) {
                 }
             }
 
-            async function apiGet(path) {
-                const res = await fetch(`${API_BASE}${path}`, {
-                    method: 'GET',
+            async function apiRequest(path, {
+                method = 'GET',
+                body = null
+            } = {}) {
+                const opts = {
+                    method,
                     headers: {
                         'Accept': 'application/json'
                     },
-                    credentials: 'include'
-                });
+                    credentials: 'include',
+                };
+
+                if (body !== null) {
+                    const fd = new FormData();
+                    Object.entries(body).forEach(([k, v]) => fd.append(k, v ?? ''));
+                    opts.body = fd;
+                }
+
+                const res = await fetch(`${API_BASE}${path}`, opts);
 
                 let data = null;
                 try {
@@ -207,7 +261,7 @@ if (!$isTeacher) {
                 try {
                     setLoading(true);
 
-                    const data = await apiGet(path);
+                    const data = await apiRequest(path);
 
                     const list =
                         (Array.isArray(data?.students) ? data.students :
@@ -251,21 +305,19 @@ if (!$isTeacher) {
 						<td class="py-3 border">${escapeHtml(s.first_name)}</td>
 						<td class="py-3 border">${escapeHtml(s.last_name)}</td>			
                         <td class="py-3 border">
-                        <div class="flex justify-center gap-2">
-                            <button data-action="toggleScores" data-index="${i}"
-                            class="px-3 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
-                            View Scores
-                            </button>
+                            <div class="flex justify-center gap-2 flex-wrap">
+                                <button data-action="toggleScores" data-index="${i}"
+                                    class="px-3 py-2 text-sm rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                                    View Scores
+                                </button>
 
-                            <button data-action="viewReport" data-student-id="${escapeHtml(s.id)}"
-                            data-student-name="${escapeHtml(`${s.first_name} ${s.last_name}`)}"
-                            class="px-3 py-2 text-sm rounded bg-emerald-600 text-white hover:bg-emerald-700">
-                            View Report Card
-                            </button>
-                        </div>
+                                <button data-action="viewReport" data-student-id="${escapeHtml(s.id)}"
+                                    data-student-name="${escapeHtml(`${s.first_name} ${s.last_name}`)}"
+                                    class="px-3 py-2 text-sm rounded bg-emerald-600 text-white hover:bg-emerald-700">
+                                    View Report Card
+                                </button>
+                            </div>
                         </td>
-
-
 					`;
                     tbody.appendChild(row);
 
@@ -321,7 +373,6 @@ if (!$isTeacher) {
                 }
             });
 
-
             function toggleScores(i) {
                 const el = document.getElementById(`scores-${i}`);
                 if (!el) return;
@@ -335,6 +386,140 @@ if (!$isTeacher) {
                     .replaceAll('>', '&gt;')
                     .replaceAll('"', '&quot;')
                     .replaceAll("'", '&#039;');
+            }
+
+            // -------------------------
+            // Student routes usage (Admin)
+            // -------------------------
+
+            if (!IS_TEACHER) {
+                const stuIdEl = document.getElementById('stu_id');
+                const stuFirstEl = document.getElementById('stu_first');
+                const stuLastEl = document.getElementById('stu_last');
+
+                const addBtn = document.getElementById('addStudentBtn');
+                const updBtn = document.getElementById('updateStudentBtn');
+                const delBtn = document.getElementById('deleteStudentBtn');
+
+                function requireClassIdOrFail() {
+                    if (!CLASS_ID) {
+                        showError('Missing class_id in URL. Add "?class_id=CLASS_ID" to use student operations.');
+                        return false;
+                    }
+                    return true;
+                }
+
+                addBtn?.addEventListener('click', async () => {
+                    clearMessages();
+                    if (!requireClassIdOrFail()) return;
+
+                    const first_name = (stuFirstEl.value || '').trim();
+                    const last_name = (stuLastEl.value || '').trim();
+
+                    if (!first_name || !last_name) {
+                        showError('First name and last name are required.');
+                        return;
+                    }
+
+                    try {
+                        setStatus('Adding student…');
+
+                        await apiRequest('/add-student', {
+                            method: 'POST',
+                            body: {
+                                class_id: String(CLASS_ID),
+                                first_name,
+                                last_name
+                            }
+                        });
+
+                        showOk('Student added.');
+                        stuFirstEl.value = '';
+                        stuLastEl.value = '';
+
+                        setTimeout(() => {
+                            loadStudentsAndScores();
+                        }, 3000);
+
+                    } catch (e) {
+                        showError(e.message || 'Failed to add student.');
+                    } finally {
+                        setStatus('');
+                    }
+                });
+
+                updBtn?.addEventListener('click', async () => {
+                    clearMessages();
+                    if (!requireClassIdOrFail()) return;
+
+                    const id = Number(stuIdEl.value);
+                    const first_name = (stuFirstEl.value || '').trim();
+                    const last_name = (stuLastEl.value || '').trim();
+
+                    if (!id || id <= 0) return showError('Valid Student ID is required for update.');
+                    if (!first_name || !last_name) return showError('First name and last name are required for update.');
+
+                    try {
+                        console.log(`Class ID: ${CLASS_ID}\nStudent ID: ${id}\nFirst Name: ${first_name}\nLast Name: ${last_name}`)
+
+                        setStatus('Updating student…');
+
+                        $res = await apiRequest('/update-student', {
+                            method: 'POST',
+                            body: {
+                                id: String(id),
+                                class_id: String(CLASS_ID),
+                                first_name,
+                                last_name
+                            }
+                        });
+
+                        showOk('Student updated.');
+
+
+                        setTimeout(() => {
+                            loadStudentsAndScores();
+                        }, 3000);
+
+
+                    } catch (error) {
+                        showError(error || 'Failed to update student.');
+                    } finally {
+                        setStatus('');
+                    }
+                });
+
+                delBtn?.addEventListener('click', async () => {
+                    clearMessages();
+
+                    const id = Number(stuIdEl.value);
+                    if (!id || id <= 0) return showError('Valid Student ID is required for delete.');
+
+                    if (!confirm(`Delete student #${id}?`)) return;
+
+                    try {
+                        setStatus('Deleting student…');
+
+                        await apiRequest('/delete-student', {
+                            method: 'POST',
+                            body: {
+                                id: String(id)
+                            }
+                        });
+
+                        showOk('Student deleted.');
+                        stuIdEl.value = '';
+
+                        setTimeout(() => {
+                            loadStudentsAndScores();
+                        }, 3000);
+
+                    } catch (e) {
+                        showError(e.message || 'Failed to delete student.');
+                    } finally {
+                        setStatus('');
+                    }
+                });
             }
 
             refreshBtn.addEventListener('click', loadStudentsAndScores);

@@ -115,7 +115,7 @@ if ($uri === '/get-classes' && $method === 'GET') {
 
 // Add student
 // POST /students
-if ($uri === '/students' && $method === 'POST') {
+if ($uri === '/add-student' && $method === 'POST') {
     Auth::requireRole('admin');
     $studentController->addStudent();
     exit;
@@ -123,7 +123,7 @@ if ($uri === '/students' && $method === 'POST') {
 
 // Update student
 // PUT /students
-if ($uri === '/students' && $method === 'PUT') {
+if ($uri === '/update-student' && $method === 'POST') {
     Auth::requireRole('admin');
     $studentController->updateStudent();
     exit;
@@ -131,7 +131,7 @@ if ($uri === '/students' && $method === 'PUT') {
 
 // Delete student
 // DELETE /students
-if ($uri === '/students' && $method === 'DELETE') {
+if ($uri === '/delete-student' && $method === 'POST') {
     Auth::requireRole('admin');
     $studentController->deleteStudent();
     exit;

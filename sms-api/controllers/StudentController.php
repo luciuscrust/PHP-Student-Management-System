@@ -44,11 +44,13 @@ class StudentController
      * Update student by ID
      * POST: id, class_id, first_name, last_name
      */
+
     public function updateStudent(): void
     {
         if (
             !isset($_POST['id'], $_POST['class_id'], $_POST['first_name'], $_POST['last_name'])
         ) {
+            $id = $_POST['id'];
             http_response_code(400);
             echo json_encode(['error' => 'Missing required fields']);
             return;
