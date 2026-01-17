@@ -89,29 +89,30 @@ class StudentModel
         int $studentId,
         int $subjectId,
         int $schoolYear,
-        float $firstTerm,
-        float $secondTerm,
-        float $thirdTerm
+        ?float $firstTerm,
+        ?float $secondTerm,
+        ?float $thirdTerm
     ): bool {
-        $sql = "INSERT INTO scores 
-                (student_id, subject_id, school_year, first_term, second_term, third_term)
-                VALUES
-                (:student_id, :subject_id, :school_year, :first_term, :second_term, :third_term)
-                ON DUPLICATE KEY UPDATE
-                    first_term = VALUES(first_term),
-                    second_term = VALUES(second_term),
-                    third_term = VALUES(third_term)";
+        $sql = "INSERT INTO scores
+            (student_id, subject_id, school_year, first_term, second_term, third_term)
+            VALUES
+            (:student_id, :subject_id, :school_year, :first_term, :second_term, :third_term)
+            ON DUPLICATE KEY UPDATE
+                first_term  = COALESCE(VALUES(first_term), first_term),
+                second_term = COALESCE(VALUES(second_term), second_term),
+                third_term  = COALESCE(VALUES(third_term), third_term)";
 
         $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute([
-            'student_id'  => $studentId,
-            'subject_id'  => $subjectId,
-            'school_year' => $schoolYear,
-            'first_term'  => $firstTerm,
-            'second_term' => $secondTerm,
-            'third_term'  => $thirdTerm
-        ]);
+        $stmt->bindValue(':student_id', $studentId, PDO::PARAM_INT);
+        $stmt->bindValue(':subject_id', $subjectId, PDO::PARAM_INT);
+        $stmt->bindValue(':school_year', $schoolYear, PDO::PARAM_INT);
+
+        $stmt->bindValue(':first_term',  $firstTerm,  $firstTerm === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(':second_term', $secondTerm, $secondTerm === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $stmt->bindValue(':third_term',  $thirdTerm,  $thirdTerm === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+
+        return $stmt->execute();
     }
 
     /**

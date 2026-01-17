@@ -526,7 +526,7 @@ if (!$isTeacher) {
 
                         setTimeout(() => {
                             loadStudentsAndScores();
-                        }, 2000);
+                        }, 1100);
 
                     } catch (e) {
                         showError(e.message || 'Failed to add student.');
@@ -566,7 +566,7 @@ if (!$isTeacher) {
 
                         setTimeout(() => {
                             loadStudentsAndScores();
-                        }, 2000);
+                        }, 1100);
 
 
                     } catch (error) {
@@ -599,7 +599,7 @@ if (!$isTeacher) {
 
                         setTimeout(() => {
                             loadStudentsAndScores();
-                        }, 2000);
+                        }, 1100);
 
                     } catch (e) {
                         showError(e.message || 'Failed to delete student.');
@@ -640,13 +640,39 @@ if (!$isTeacher) {
 
                     const school_year = Number(scoreSchoolYearEl.value);
 
-                    const first_term = Number(scoreFirstEl.value);
-                    const second_term = Number(scoreSecondEl.value);
-                    const third_term = Number(scoreThirdEl.value);
+                    const first_term =
+                        scoreFirstEl.value === '' ? null : Number(scoreFirstEl.value);
 
-                    if (!student_id || student_id <= 0) return showError('Valid Student ID is required.');
-                    if (!subject_id || subject_id <= 0) return showError('Valid Subject ID is required.');
-                    if (!school_year || school_year <= 0) return showError('Valid School Year is required.');
+                    const second_term =
+                        scoreSecondEl.value === '' ? null : Number(scoreSecondEl.value);
+
+                    const third_term =
+                        scoreThirdEl.value === '' ? null : Number(scoreThirdEl.value);
+
+                    if (!student_id || student_id <= 0) {
+                        return showError('Valid Student ID is required.');
+                    }
+
+                    if (!subject_id || subject_id <= 0) {
+                        return showError('Valid Subject ID is required.');
+                    }
+
+                    if (!school_year || school_year <= 0) {
+                        return showError('Valid School Year is required.');
+                    }
+
+                    if (first_term === null && second_term === null && third_term === null) {
+                        return showError('Enter at least one term score.');
+                    }
+
+                    if (
+                        (first_term !== null && Number.isNaN(first_term)) ||
+                        (second_term !== null && Number.isNaN(second_term)) ||
+                        (third_term !== null && Number.isNaN(third_term))
+                    ) {
+                        return showError('Term scores must be valid numbers.');
+                    }
+
 
                     if (Number.isNaN(first_term) || Number.isNaN(second_term) || Number.isNaN(third_term)) {
                         return showError('Term 1, Term 2, and Term 3 must be numbers.');
@@ -661,14 +687,17 @@ if (!$isTeacher) {
                                 student_id: String(student_id),
                                 subject_id: String(subject_id),
                                 school_year: String(school_year),
-                                first_term: String(first_term),
-                                second_term: String(second_term),
-                                third_term: String(third_term),
+
+                                first_term: first_term === null ? '' : String(first_term),
+                                second_term: second_term === null ? '' : String(second_term),
+                                third_term: third_term === null ? '' : String(third_term),
+
                             }
                         });
 
                         showOk('Scores saved.');
-                        setTimeout(() => loadStudentsAndScores(), 1200);
+
+                        setTimeout(() => loadStudentsAndScores(), 1100);
 
                     } catch (e) {
                         showError(e.message || 'Failed to save scores.');

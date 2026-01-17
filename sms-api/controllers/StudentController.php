@@ -18,6 +18,13 @@ class StudentController
      * POST: class_id, first_name, last_name
      */
 
+    private function scoreOrNull($value): ?float
+    {
+        if ($value === '' || $value === null) return null;
+        return (float)$value;
+    }
+
+
     public function addStudent(): void
     {
         if (
@@ -93,39 +100,39 @@ class StudentController
      * student_id, subject_id, school_year,
      * first_term, second_term, third_term
      */
+
     public function saveScores(): void
     {
-        $required = [
-            'student_id',
-            'subject_id',
-            'school_year',
-            'first_term',
-            'second_term',
-            'third_term'
-        ];
+        $required = ['student_id', 'subject_id', 'school_year'];
 
         foreach ($required as $field) {
-            if (!isset($_POST[$field])) {
-                http_response_code(400);
-                echo json_encode(['error' => "$field is required"]);
+            if (!isset($_POST[$field]) || $_POST[$field] === '') {
+                JsonHelpers::json(400, ['error' => "$field is required"]);
                 return;
             }
+        }
+
+        $first  = $this->scoreOrNull($_POST['first_term'] ?? null);
+        $second = $this->scoreOrNull($_POST['second_term'] ?? null);
+        $third  = $this->scoreOrNull($_POST['third_term'] ?? null);
+
+        if ($first === null && $second === null && $third === null) {
+            JsonHelpers::json(400, ['error' => "At least one term score is required"]);
+            return;
         }
 
         $success = $this->StudentModel->saveScores(
             (int) $_POST['student_id'],
             (int) $_POST['subject_id'],
             (int) $_POST['school_year'],
-            (float) $_POST['first_term'],
-            (float) $_POST['second_term'],
-            (float) $_POST['third_term']
+            $first,
+            $second,
+            $third
         );
 
-        http_response_code($success ? 200 : 500);
-        echo json_encode([
-            'success' => $success
-        ]);
+        JsonHelpers::json($success ? 200 : 500, ['success' => $success]);
     }
+
 
     /**
      * Get student scores
