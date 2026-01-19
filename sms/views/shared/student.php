@@ -63,13 +63,6 @@ if (!$isTeacher) {
                         Apply
                     </button>
 
-                    <button
-                        id="clearYearBtn"
-                        type="button"
-                        class="text-sm px-3 py-2 rounded border hover:bg-gray-50">
-                        Clear
-                    </button>
-
                     <span id="statusPill" class="hidden text-xs px-2 py-1 rounded bg-gray-100 text-gray-700"></span>
                     <button
                         id="refreshBtn"
@@ -233,7 +226,6 @@ if (!$isTeacher) {
 
             const yearFilterEl = document.getElementById('yearFilter');
             const applyYearBtn = document.getElementById('applyYearBtn');
-            const clearYearBtn = document.getElementById('clearYearBtn');
 
             const show = (el) => el.classList.remove('hidden');
             const hide = (el) => el.classList.add('hidden');
@@ -346,15 +338,6 @@ if (!$isTeacher) {
 
                 setSelectedYear(yearStr);
                 updateUrlWithYear(yearStr);
-                loadStudentsAndScores();
-            });
-
-            clearYearBtn?.addEventListener('click', () => {
-                clearMessages();
-
-                if (yearFilterEl) yearFilterEl.value = '';
-                setSelectedYear('');
-                updateUrlWithYear('');
                 loadStudentsAndScores();
             });
 
