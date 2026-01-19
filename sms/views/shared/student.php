@@ -46,7 +46,30 @@ if (!$isTeacher) {
             <div class="flex items-center justify-between gap-4">
                 <h2 class="text-lg font-semibold">Students & Scores</h2>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap justify-end">
+                    <label for="yearFilter" class="text-sm text-gray-600">Year</label>
+                    <input
+                        id="yearFilter"
+                        type="number"
+                        min="2000"
+                        max="2100"
+                        class="w-28 border rounded px-3 py-2 text-sm"
+                        placeholder="e.g. 2025" />
+
+                    <button
+                        id="applyYearBtn"
+                        type="button"
+                        class="text-sm px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                        Apply
+                    </button>
+
+                    <button
+                        id="clearYearBtn"
+                        type="button"
+                        class="text-sm px-3 py-2 rounded border hover:bg-gray-50">
+                        Clear
+                    </button>
+
                     <span id="statusPill" class="hidden text-xs px-2 py-1 rounded bg-gray-100 text-gray-700"></span>
                     <button
                         id="refreshBtn"
@@ -136,7 +159,6 @@ if (!$isTeacher) {
                         </select>
                     </div>
 
-
                     <div>
                         <label class="block text-sm font-medium mb-1">School Year</label>
                         <input id="score_school_year" type="number" class="w-full border rounded px-3 py-2" placeholder="e.g. 2025" min="2000" />
@@ -169,7 +191,6 @@ if (!$isTeacher) {
                     This will create or update the student’s scores for the selected subject & school year.
                 </p>
             </div>
-
 
             <div id="loading" class="hidden space-y-3">
                 <div class="h-12 bg-gray-100 rounded animate-pulse"></div>
@@ -209,6 +230,10 @@ if (!$isTeacher) {
             const classInfo = document.getElementById('classInfo');
             const tbody = document.getElementById('studentsTableBody');
             const loading = document.getElementById('loading');
+
+            const yearFilterEl = document.getElementById('yearFilter');
+            const applyYearBtn = document.getElementById('applyYearBtn');
+            const clearYearBtn = document.getElementById('clearYearBtn');
 
             const show = (el) => el.classList.remove('hidden');
             const hide = (el) => el.classList.add('hidden');
@@ -264,6 +289,74 @@ if (!$isTeacher) {
                     hide(loading);
                 }
             }
+
+            function getQueryParams() {
+                return new URLSearchParams(window.location.search);
+            }
+
+            function getSelectedYearFromUrlOrStorage() {
+                const params = getQueryParams();
+                const urlYear = params.get('year');
+                if (urlYear) return urlYear;
+
+                try {
+                    const stored = localStorage.getItem('selected_school_year');
+                    return stored || '';
+                } catch (_) {
+                    return '';
+                }
+            }
+
+            function setSelectedYear(yearStr) {
+                try {
+                    if (yearStr) localStorage.setItem('selected_school_year', yearStr);
+                    else localStorage.removeItem('selected_school_year');
+                } catch (_) {}
+            }
+
+            function isValidYear(yearStr) {
+                if (!yearStr) return true;
+                const y = Number(yearStr);
+                return Number.isInteger(y) && y >= 2000 && y <= 2100;
+            }
+
+            function updateUrlWithYear(yearStr) {
+                const params = getQueryParams();
+
+                if (yearStr) params.set('year', yearStr);
+                else params.delete('year');
+
+                const newQuery = params.toString();
+                const newUrl = `${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`;
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            const initialYear = getSelectedYearFromUrlOrStorage();
+            if (yearFilterEl) yearFilterEl.value = initialYear;
+
+            applyYearBtn?.addEventListener('click', () => {
+                clearMessages();
+
+                const yearStr = String(yearFilterEl?.value || '').trim();
+
+                if (!isValidYear(yearStr)) {
+                    showError('Please enter a valid year between 2000 and 2100.');
+                    return;
+                }
+
+                setSelectedYear(yearStr);
+                updateUrlWithYear(yearStr);
+                loadStudentsAndScores();
+            });
+
+            clearYearBtn?.addEventListener('click', () => {
+                clearMessages();
+
+                if (yearFilterEl) yearFilterEl.value = '';
+                setSelectedYear('');
+                updateUrlWithYear('');
+                loadStudentsAndScores();
+            });
 
             function calculateSubjectId(subjectKey) {
                 const gradeIdRaw = localStorage.getItem('selected_grade_id');
@@ -323,10 +416,21 @@ if (!$isTeacher) {
             }
 
             function resolveReportPath() {
-                if (IS_TEACHER) return '/teacher/class-report';
+                const yearStr = String(yearFilterEl?.value || '').trim();
+                const hasYear = yearStr && isValidYear(yearStr);
+
+                if (IS_TEACHER) {
+                    if (hasYear) return `/teacher/class-report?year=${encodeURIComponent(yearStr)}`;
+                    return '/teacher/class-report';
+                }
 
                 if (!CLASS_ID) return null;
-                return `/class-report?class_id=${encodeURIComponent(CLASS_ID)}`;
+
+                const qs = new URLSearchParams();
+                qs.set('class_id', String(CLASS_ID));
+                if (hasYear) qs.set('year', yearStr);
+
+                return `/class-report?${qs.toString()}`;
             }
 
             async function loadStudentsAndScores() {
@@ -451,7 +555,10 @@ if (!$isTeacher) {
                         localStorage.setItem('selected_student_name', studentName || '');
                     } catch (_) {}
 
-                    window.location.href = `./student_report.php?student_id=${encodeURIComponent(studentId)}`;
+                    const yearStr = String(yearFilterEl?.value || '').trim();
+                    const yearParam = (yearStr && isValidYear(yearStr)) ? `&year=${encodeURIComponent(yearStr)}` : '';
+
+                    window.location.href = `./student_report.php?student_id=${encodeURIComponent(studentId)}${yearParam}`;
                 }
             });
 
@@ -475,10 +582,6 @@ if (!$isTeacher) {
             // -------------------------
 
             if (!IS_TEACHER) {
-                // -------------------------
-                // Student Add, Update and Delete Operation
-                // -------------------------
-
                 const stuIdEl = document.getElementById('stu_id');
                 const stuFirstEl = document.getElementById('stu_first');
                 const stuLastEl = document.getElementById('stu_last');
@@ -562,11 +665,9 @@ if (!$isTeacher) {
 
                         showOk('Student updated.');
 
-
                         setTimeout(() => {
                             loadStudentsAndScores();
                         }, 1100);
-
 
                     } catch (error) {
                         showError(error.message || 'Failed to update student.');
@@ -607,7 +708,6 @@ if (!$isTeacher) {
                     }
                 });
             }
-
 
             // -------------------------
             // Add and Update Student Subject Scores Across Terms
@@ -674,7 +774,6 @@ if (!$isTeacher) {
                     return showError('Term scores must be valid numbers.');
                 }
 
-
                 if (Number.isNaN(first_term) || Number.isNaN(second_term) || Number.isNaN(third_term)) {
                     return showError('Term 1, Term 2, and Term 3 must be numbers.');
                 }
@@ -705,8 +804,6 @@ if (!$isTeacher) {
                     setStatus('');
                 }
             });
-
-
 
             refreshBtn.addEventListener('click', loadStudentsAndScores);
 
