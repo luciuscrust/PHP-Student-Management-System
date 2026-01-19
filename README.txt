@@ -50,7 +50,11 @@ Make sure both show “Running”.
 2. Create a new database:
    - Database name: sms_db
 
-3. Import the SQL schema + seed data:
+3. Open the frontend in your browser:
+   http://localhost/PHP-Student-Management-System/sms/
+   (This will automatically create the needed database tables)
+
+4. Import the SQL schema + seed data:
    - Find the file named database.sql in the project folder
    - In phpMyAdmin:
      a) Click the sms_db database
