@@ -81,7 +81,7 @@ if (!$isTeacher) {
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h2 class="text-lg font-semibold">Students</h2>
-                    <p id="classInfo" class="text-sm text-gray-600">—</p>
+                    <p id="classInfo" class="text-sm text-gray-600">-</p>
                 </div>
             </div>
 
@@ -419,7 +419,7 @@ if (!$isTeacher) {
             async function loadStudentsAndScores() {
                 clearMessages();
                 tbody.innerHTML = '';
-                classInfo.textContent = '—';
+                classInfo.textContent = '-';
 
                 const path = resolveReportPath();
                 if (!path) {
