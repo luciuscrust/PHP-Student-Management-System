@@ -63,17 +63,17 @@ $apiBase = 'http://localhost/PHP-Student-Management-System/sms-api';
             <div id="summary" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="p-4 rounded border bg-gray-50">
                     <div class="text-xs text-gray-500">Grade</div>
-                    <div id="gradeNo" class="font-medium text-gray-900">—</div>
+                    <div id="gradeNo" class="font-medium text-gray-900">-</div>
                 </div>
 
                 <div class="p-4 rounded border bg-gray-50">
                     <div class="text-xs text-gray-500">Class</div>
-                    <div id="className" class="font-medium text-gray-900">—</div>
+                    <div id="className" class="font-medium text-gray-900">-</div>
                 </div>
 
                 <div class="p-4 rounded border bg-gray-50">
                     <div class="text-xs text-gray-500">Overall Average</div>
-                    <div id="overallAvg" class="font-medium text-gray-900">—</div>
+                    <div id="overallAvg" class="font-medium text-gray-900">-</div>
                 </div>
             </div>
 
@@ -170,7 +170,15 @@ $apiBase = 'http://localhost/PHP-Student-Management-System/sms-api';
 
             function resolvePath() {
                 const base = IS_TEACHER ? '/teacher/student-report' : '/student-report';
-                return `${base}?student_id=${encodeURIComponent(STUDENT_ID)}`;
+
+                const params = new URLSearchParams(window.location.search);
+                const year = (params.get('year') || '').trim();
+
+                const qs = new URLSearchParams();
+                qs.set('student_id', String(STUDENT_ID));
+                if (year) qs.set('year', year);
+
+                return `${base}?${qs.toString()}`;
             }
 
             function render(report) {
@@ -178,13 +186,13 @@ $apiBase = 'http://localhost/PHP-Student-Management-System/sms-api';
                 const student = report?.student;
 
                 if (student) {
-                    className.textContent = student.class_name ?? '—';
-                    gradeNo.textContent = (student.grade_no != null) ? `Grade ${student.grade_no}` : '—';
+                    className.textContent = student.class_name ?? '-';
+                    gradeNo.textContent = (student.grade_no != null) ? `Grade ${student.grade_no}` : '-';
                 }
 
                 overallAvg.textContent = (report?.overall_average != null) ?
                     Number(report.overall_average).toFixed(2) :
-                    '—';
+                    '-';
 
                 show(summary);
 
